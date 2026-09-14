@@ -1,0 +1,36 @@
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+DerivedData/
+build/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# SwiftPM
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Local / generated pickers (not part of the app)
+ichess/previews/
+
+# Node helpers used only to pack assets
+node_modules/
+npm-debug.log*
+
+# Editor
+*.swp
+*~
+.idea/
+.vscode/

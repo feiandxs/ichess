@@ -1,0 +1,467 @@
+{
+  "defaultID": "neo",
+  "sets": [
+    {
+      "id": "neo",
+      "name": "Neo",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "geometric",
+      "name": "Geometric",
+      "source": "自绘 SVG",
+      "style": "icon"
+    },
+    {
+      "id": "clay",
+      "name": "Clay 3D",
+      "source": "自绘",
+      "style": "sculpt"
+    },
+    {
+      "id": "spatial",
+      "name": "Spatial",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "fresca",
+      "name": "Fresca",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "cases",
+      "name": "Cases",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "icy_sea",
+      "name": "Icy Sea",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "bases",
+      "name": "Bases",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "caliente",
+      "name": "Caliente",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "rhosgfx",
+      "name": "RhosGFX",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "modern",
+      "name": "Modern",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "dash",
+      "name": "Dash",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "3d_plastic",
+      "name": "3D Plastic",
+      "source": "Chess.com",
+      "style": "sculpt"
+    },
+    {
+      "id": "3d_staunton",
+      "name": "3D Staunton",
+      "source": "Chess.com",
+      "style": "sculpt"
+    },
+    {
+      "id": "3d_wood",
+      "name": "3D Wood",
+      "source": "Chess.com",
+      "style": "sculpt"
+    },
+    {
+      "id": "8_bit",
+      "name": "8-bit",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "li_alpha",
+      "name": "Alpha (Lichess)",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "anarcandy",
+      "name": "Anarcandy",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "book",
+      "name": "Book",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "bubblegum",
+      "name": "Bubblegum",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "california",
+      "name": "California",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "cardinal",
+      "name": "Cardinal",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "cburnett",
+      "name": "Cburnett",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "celtic",
+      "name": "Celtic",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "chess7",
+      "name": "Chess7",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "3d_chesskid",
+      "name": "ChessKid",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "chessnut",
+      "name": "Chessnut",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "classic",
+      "name": "Classic",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "club",
+      "name": "Club",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "companion",
+      "name": "Companion",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "condal",
+      "name": "Condal",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "cooke",
+      "name": "Cooke",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "dubrovny",
+      "name": "Dubrovny",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "fantasy",
+      "name": "Fantasy",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "firi",
+      "name": "Firi",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "game_room",
+      "name": "Game Room",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "gioco",
+      "name": "Gioco",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "glass",
+      "name": "Glass",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "gothic",
+      "name": "Gothic",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "governor",
+      "name": "Governor",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "graffiti",
+      "name": "Graffiti",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "horsey",
+      "name": "Horsey",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "icpieces",
+      "name": "ICpieces",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "kiwen_suwi",
+      "name": "Kiwen Suwi",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "kosal",
+      "name": "Kosal",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "leipzig",
+      "name": "Leipzig",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "letter",
+      "name": "Letter",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "light",
+      "name": "Light",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "lolz",
+      "name": "Lolz",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "maestro",
+      "name": "Maestro",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "marble",
+      "name": "Marble",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "maya",
+      "name": "Maya",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "merida",
+      "name": "Merida",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "metal",
+      "name": "Metal",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "mpchess",
+      "name": "MP Chess",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "nature",
+      "name": "Nature",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "neo_wood",
+      "name": "Neo Wood",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "neon",
+      "name": "Neon",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "newspaper",
+      "name": "Newspaper",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "ocean",
+      "name": "Ocean",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "papercut",
+      "name": "Papercut",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "pirouetti",
+      "name": "Pirouetti",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "pixel",
+      "name": "Pixel",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "reillycraig",
+      "name": "Reillycraig",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "riohacha",
+      "name": "Riohacha",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "shapes",
+      "name": "Shapes",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "sky",
+      "name": "Sky",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "space",
+      "name": "Space",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "staunty",
+      "name": "Staunty",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "tatiana",
+      "name": "Tatiana",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "tigers",
+      "name": "Tigers",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "totoy",
+      "name": "Totoy",
+      "source": "Lichess",
+      "style": "icon"
+    },
+    {
+      "id": "tournament",
+      "name": "Tournament",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "vintage",
+      "name": "Vintage",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "wood",
+      "name": "Wood",
+      "source": "Chess.com",
+      "style": "icon"
+    },
+    {
+      "id": "xkcd",
+      "name": "xkcd",
+      "source": "Lichess",
+      "style": "icon"
+    }
+  ]
+}
