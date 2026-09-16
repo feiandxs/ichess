@@ -119,6 +119,7 @@ struct GameOverOverlay: View {
 enum GameOutcome {
     case win
     case loss
+    case resigned
     case draw(String)
 
     var isWin: Bool {
@@ -130,6 +131,7 @@ enum GameOutcome {
         switch self {
         case .win: "你赢了"
         case .loss: "将死了"
+        case .resigned: "你认输了"
         case .draw: "和棋"
         }
     }
@@ -137,7 +139,7 @@ enum GameOutcome {
     var subtitle: String {
         switch self {
         case .win: "这局下得漂亮"
-        case .loss: "再试一盘就熟了"
+        case .loss, .resigned: "再试一盘就熟了"
         case .draw(let reason): reason
         }
     }
@@ -145,7 +147,7 @@ enum GameOutcome {
     var symbol: String {
         switch self {
         case .win: "trophy.fill"
-        case .loss: "flag.fill"
+        case .loss, .resigned: "flag.fill"
         case .draw: "handshake.fill"
         }
     }
@@ -153,7 +155,7 @@ enum GameOutcome {
     var accent: Color {
         switch self {
         case .win: Color(red: 88 / 255, green: 204 / 255, blue: 2 / 255)
-        case .loss: Color(red: 1, green: 0.45, blue: 0.32)
+        case .loss, .resigned: Color(red: 1, green: 0.45, blue: 0.32)
         case .draw: Color(red: 90 / 255, green: 160 / 255, blue: 190 / 255)
         }
     }

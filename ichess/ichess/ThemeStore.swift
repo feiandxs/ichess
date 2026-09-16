@@ -18,7 +18,7 @@ final class ThemeStore: ObservableObject {
 
     init() {
         if UserDefaults.standard.object(forKey: Self.key) == nil {
-            isDark = true
+            isDark = false
         } else {
             isDark = UserDefaults.standard.bool(forKey: Self.key)
         }
@@ -42,6 +42,10 @@ struct BoardPalette {
         isDark
             ? Color(red: 35 / 255, green: 52 / 255, blue: 59 / 255)
             : Color(red: 232 / 255, green: 238 / 255, blue: 242 / 255)
+    }
+
+    var boardBorder: Color {
+        darkSquare
     }
 
     var darkSquare: Color {

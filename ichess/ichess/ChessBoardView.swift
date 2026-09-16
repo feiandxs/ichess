@@ -73,6 +73,11 @@ struct ChessBoardView: View {
             }
             .frame(width: side, height: side, alignment: .topLeading)
             .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
+                    .strokeBorder(palette.boardBorder, lineWidth: 1.5)
+                    .allowsHitTesting(false)
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .allowsHitTesting(!game.isEngineThinking)
             .onChange(of: game.lastPlayed?.id) { _, _ in

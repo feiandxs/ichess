@@ -29,6 +29,9 @@ final class ChessGameStore: ObservableObject {
     @Published private(set) var lossStreak = 0
     @Published private(set) var lastRatingDelta = 0
     @Published private(set) var recentResults: [GameResult] = []
+    @Published private(set) var hasResigned = false
+    @Published private(set) var isHintThinking = false
+    @Published var hintError: String?
 
     let playerColor: Piece.Color = .white
     /// Restored games should not replay the last move animation.
@@ -36,6 +39,7 @@ final class ChessGameStore: ObservableObject {
     private var history: [Board] = []
     private var engineTask: Task<Void, Never>?
     private var hasRatedThisGame = false
+    private var positionRevision = 0
 
     var lastMove: (Square, Square)? {
         lastPlayed.map { ($0.from, $0.to) }
@@ -47,9 +51,9 @@ final class ChessGameStore: ObservableObject {
         return Set(board.legalMoves(forPieceAt: selected))
     }
 
-    var canUndo: Bool { !history.isEmpty }
+    var canUndo: Bool { !hasResigned && !history.isEmpty }
     var canHint: Bool {
-        !isEngineThinking && !isGameOver && pendingPromotion == nil && sideToMove == playerColor
+        !isHintThinking && !isEngineThinking && !isGameOver && pendingPromotion == nil && sideToMove == playerColor
     }
 
     var isGameOver: Bool {
@@ -57,6 +61,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var outcome: GameOutcome? {
+        if hasResigned { return .resigned }
         switch board.state {
         case .checkmate(let color):
             return color == playerColor ? .loss : .win
@@ -76,6 +81,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var pendingPromotion: Move? {
+        if hasResigned { return nil }
         if case let .promotion(move) = board.state { return move }
         return nil
     }
@@ -107,6 +113,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var statusText: String {
+        if hasResigned { return "已认输 · 你输了" }
         if isEngineThinking { return "对方思考中" }
         switch board.state {
         case .active:
@@ -152,6 +159,7 @@ final class ChessGameStore: ObservableObject {
 
     func completePromotion(to kind: Piece.Kind) {
         guard let move = pendingPromotion else { return }
+        positionRevision += 1
         var next = board
         next.completePromotion(of: move, to: kind)
         board = next
@@ -164,14 +172,30 @@ final class ChessGameStore: ObservableObject {
     func showHint() {
         guard canHint else { return }
         let snapshot = board
-        let strength = Strength.snapshot(rating)
-        if let move = SimpleChessEngine.chooseMove(on: snapshot, depth: strength.depth, noiseWindow: 0) {
-            hint = (move.from, move.to)
-            selected = nil
+        let revision = positionRevision
+        isHintThinking = true
+        hint = nil
+        hintError = nil
+        Task {
+            defer { isHintThinking = false }
+            do {
+                let lan = try await StockfishHintEngine.shared.bestMove(fen: snapshot.position.fen)
+                guard positionRevision == revision else { return }
+                guard let move = EngineLANParser.parse(move: lan, for: playerColor, in: snapshot.position),
+                      snapshot.legalMoves(forPieceAt: move.start).contains(move.end) else {
+                    throw HintError.unavailable
+                }
+                hint = (move.start, move.end)
+                selected = nil
+            } catch {
+                if positionRevision == revision { hintError = error.localizedDescription }
+            }
         }
     }
 
     func undo() {
+        guard canUndo else { return }
+        positionRevision += 1
         cancelEngine()
         hint = nil
         guard !history.isEmpty else { return }
@@ -186,8 +210,20 @@ final class ChessGameStore: ObservableObject {
         persist()
     }
 
-    func restart() {
+    func resign() {
+        guard !isGameOver else { return }
+        positionRevision += 1
         cancelEngine()
+        selected = nil
+        hint = nil
+        hasResigned = true
+        finishGameIfNeeded()
+    }
+
+    func restart() {
+        positionRevision += 1
+        cancelEngine()
+        hasResigned = false
         board = Board()
         history = []
         selected = nil
@@ -209,6 +245,7 @@ final class ChessGameStore: ObservableObject {
     private func play(from start: Square, to end: Square) {
         var next = board
         guard let played = next.move(pieceAt: start, to: end) else { return }
+        positionRevision += 1
         history.append(board)
         board = next
         selected = nil
@@ -245,6 +282,7 @@ final class ChessGameStore: ObservableObject {
         guard let move, !isGameOver, sideToMove != playerColor else { return }
         var next = board
         guard let played = next.move(pieceAt: move.from, to: move.to) else { return }
+        positionRevision += 1
         if case let .promotion(pending) = next.state {
             next.completePromotion(of: pending, to: move.promotion ?? .queen)
         }
@@ -262,7 +300,8 @@ final class ChessGameStore: ObservableObject {
             history: history.map(\.position.fen),
             lastFrom: lastPlayed.map { $0.from.notation },
             lastTo: lastPlayed.map { $0.to.notation },
-            hasRatedThisGame: hasRatedThisGame
+            hasRatedThisGame: hasRatedThisGame,
+            hasResigned: hasResigned
         )
         SavedGame.save(snapshot)
     }
@@ -271,6 +310,7 @@ final class ChessGameStore: ObservableObject {
         guard let saved = SavedGame.load() else { return }
         guard let position = Position(fen: saved.fen) else { return }
         board = Board(position: position)
+        hasResigned = saved.hasResigned ?? false
         history = saved.history.compactMap { fen in
             guard let pos = Position(fen: fen) else { return nil }
             return Board(position: pos)
@@ -294,9 +334,11 @@ final class ChessGameStore: ObservableObject {
         guard isGameOver, !hasRatedThisGame else { return }
         hasRatedThisGame = true
         let result: GameResult
-        switch board.state {
-        case .checkmate(let color):
-            result = color == playerColor ? .loss : .win
+        switch outcome {
+        case .win:
+            result = .win
+        case .loss, .resigned:
+            result = .loss
         case .draw:
             result = .draw
         default:
@@ -363,6 +405,7 @@ private struct SavedGame: Codable {
     var lastFrom: String?
     var lastTo: String?
     var hasRatedThisGame: Bool?
+    var hasResigned: Bool?
 
     private static var url: URL {
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
