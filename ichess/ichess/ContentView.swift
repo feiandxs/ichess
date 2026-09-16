@@ -20,53 +20,55 @@ struct ContentView: View {
             palette.canvas.ignoresSafeArea()
             VStack(spacing: 0) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(game.statusText)
-                            .font(.headline)
-                            .foregroundStyle(palette.primaryText)
-                        HStack(spacing: 8) {
-                            Text("练习积分 \(game.ratingLine)")
-                                .font(.subheadline.weight(.semibold))
-                                .monospacedDigit()
-                            Text(game.streakLine)
-                            if !game.recentLine.isEmpty {
-                                Text(game.recentLine)
-                            }
-                        }
-                        .font(.caption)
-                        .foregroundStyle(palette.secondaryText)
-                    }
+                    Text(game.statusText)
+                        .font(.headline)
+                        .foregroundStyle(palette.primaryText)
                     Spacer()
                     toolbarButton(
-                        theme.isDark ? "浅色" : "深色",
+                        theme.isDark ? "Light" : "Dark",
                         systemImage: theme.isDark ? "sun.max.fill" : "moon.fill",
                         palette: palette
                     ) {
                         theme.toggle()
                     }
-                    toolbarButton("棋子", systemImage: "checkerboard.rectangle", palette: palette) {
+                    toolbarButton("Pieces", systemImage: "checkerboard.rectangle", palette: palette) {
                         showPieceSets = true
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
 
+                HStack(spacing: 8) {
+                    Text("Points \(game.ratingLine)")
+                        .font(.subheadline.weight(.semibold))
+                        .monospacedDigit()
+                    Text(game.streakLine)
+                    if !game.recentLine.isEmpty {
+                        Text(game.recentLine)
+                    }
+                    Spacer()
+                }
+                .font(.caption)
+                .foregroundStyle(palette.secondaryText)
+                .padding(.horizontal, 20)
+                .padding(.top, 2)
+
                 HStack(spacing: 6) {
-                    toolbarButton("悔棋", systemImage: "arrow.uturn.backward", palette: palette) {
+                    toolbarButton("Undo", systemImage: "arrow.uturn.backward", palette: palette) {
                         game.undo()
                     }
                     .disabled(!game.canUndo)
 
-                    toolbarButton("重开", systemImage: "arrow.counterclockwise", palette: palette) {
+                    toolbarButton("New", systemImage: "arrow.counterclockwise", palette: palette) {
                         game.restart()
                     }
 
-                    toolbarButton(game.isHintThinking ? "分析" : "提示", systemImage: "lightbulb", palette: palette) {
+                    toolbarButton(game.isHintThinking ? "Thinking" : "Hint", systemImage: "lightbulb", palette: palette) {
                         game.showHint()
                     }
                     .disabled(!game.canHint)
 
-                    toolbarButton("认输", systemImage: "flag", palette: palette) {
+                    toolbarButton("Resign", systemImage: "flag", palette: palette) {
                         showResignConfirmation = true
                     }
                     .disabled(game.isGameOver)
@@ -81,12 +83,12 @@ struct ContentView: View {
                     Button {
                         showDifficulty = true
                     } label: {
-                        Label("难度：\(game.activeDifficulty.title)", systemImage: "slider.horizontal.3")
+                        Label("Level: \(game.activeDifficulty.title)", systemImage: "slider.horizontal.3")
                     }
                     .buttonStyle(.plain)
                     .font(.subheadline.weight(.semibold))
                     if game.selectedDifficulty != game.activeDifficulty {
-                        Text("下盘：\(game.selectedDifficulty.title)")
+                        Text("Next: \(game.selectedDifficulty.title)")
                             .font(.caption)
                             .foregroundStyle(palette.secondaryText)
                     }
@@ -119,28 +121,28 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(theme.isDark ? .dark : .light)
-        .alert("电脑暂时无法走棋", isPresented: Binding(
+        .alert("Computer Move Unavailable", isPresented: Binding(
             get: { game.engineError != nil },
             set: { if !$0 { game.engineError = nil } }
         )) {
-            Button("重试") { game.resumeIfNeeded() }
-            Button("取消", role: .cancel) { game.engineError = nil }
+            Button("Retry") { game.resumeIfNeeded() }
+            Button("Cancel", role: .cancel) { game.engineError = nil }
         } message: {
             Text(game.engineError ?? "")
         }
-        .alert("提示暂不可用", isPresented: Binding(
+        .alert("Hint Unavailable", isPresented: Binding(
             get: { game.hintError != nil },
             set: { if !$0 { game.hintError = nil } }
         )) {
-            Button("好") { game.hintError = nil }
+            Button("OK") { game.hintError = nil }
         } message: {
             Text(game.hintError ?? "")
         }
-        .alert("确认认输？", isPresented: $showResignConfirmation) {
-            Button("继续下棋", role: .cancel) { }
-            Button("认输", role: .destructive) { game.resign() }
+        .alert("Resign this game?", isPresented: $showResignConfirmation) {
+            Button("Keep Playing", role: .cancel) { }
+            Button("Resign", role: .destructive) { game.resign() }
         } message: {
-            Text("本局将记为负局，并按现有规则结算积分。")
+            Text("This game will count as a loss and your practice points will be updated.")
         }
         .onAppear {
             showDifficulty = !game.hasChosenDifficulty
@@ -166,7 +168,7 @@ struct ContentView: View {
     }
 
     private func toolbarButton(
-        _ title: String,
+        _ title: LocalizedStringKey,
         systemImage: String,
         palette: BoardPalette,
         action: @escaping () -> Void

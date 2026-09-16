@@ -74,11 +74,11 @@ final class ChessGameStore: ObservableObject {
         case .draw(let reason):
             let text: String
             switch reason {
-            case .stalemate: text = "无子可动"
-            case .repetition: text = "三次重复"
-            case .fiftyMoves: text = "五十步规则"
-            case .insufficientMaterial: text = "子力不足"
-            case .agreement: text = "双方同意"
+            case .stalemate: text = String(localized: "Stalemate")
+            case .repetition: text = String(localized: "Threefold repetition")
+            case .fiftyMoves: text = String(localized: "Fifty-move rule")
+            case .insufficientMaterial: text = String(localized: "Insufficient material")
+            case .agreement: text = String(localized: "By agreement")
             }
             return .draw(text)
         default:
@@ -99,9 +99,9 @@ final class ChessGameStore: ObservableObject {
     }
 
     var streakLine: String {
-        if winStreak > 0 { return "连胜 \(winStreak)" }
-        if lossStreak > 0 { return "连败 \(lossStreak)" }
-        return "练习中"
+        if winStreak > 0 { return String(localized: "Win streak: \(winStreak)") }
+        if lossStreak > 0 { return String(localized: "Loss streak: \(lossStreak)") }
+        return String(localized: "Practicing")
     }
 
     var recentLine: String {
@@ -136,25 +136,25 @@ final class ChessGameStore: ObservableObject {
     }
 
     var statusText: String {
-        if hasResigned { return "已认输 · 你输了" }
-        if isEngineThinking { return "对方思考中" }
+        if hasResigned { return String(localized: "You resigned · You lost") }
+        if isEngineThinking { return String(localized: "Computer is thinking") }
         switch board.state {
         case .active:
-            return sideToMove == playerColor ? "轮到你了" : "对方走"
+            return sideToMove == playerColor ? String(localized: "Your turn") : String(localized: "Computer’s turn")
         case .check(let color):
-            return color == playerColor ? "你被将军" : "对方被将军"
+            return color == playerColor ? String(localized: "You are in check") : String(localized: "Computer is in check")
         case .checkmate(let color):
-            return color == playerColor ? "将死 · 你输了" : "将死 · 你赢了"
+            return color == playerColor ? String(localized: "Checkmate · You lost") : String(localized: "Checkmate · You won")
         case .draw(let reason):
             switch reason {
-            case .stalemate: return "和棋 · 无子可动"
-            case .repetition: return "和棋 · 三次重复"
-            case .fiftyMoves: return "和棋 · 五十步"
-            case .insufficientMaterial: return "和棋 · 子力不足"
-            case .agreement: return "和棋"
+            case .stalemate: return String(localized: "Draw · Stalemate")
+            case .repetition: return String(localized: "Draw · Threefold repetition")
+            case .fiftyMoves: return String(localized: "Draw · Fifty-move rule")
+            case .insufficientMaterial: return String(localized: "Draw · Insufficient material")
+            case .agreement: return String(localized: "Draw")
             }
         case .promotion:
-            return "选择升变"
+            return String(localized: "Choose a promotion")
         }
     }
 
@@ -506,9 +506,9 @@ enum GameResult: String, Codable {
 
     var mark: String {
         switch self {
-        case .win: "胜"
-        case .loss: "负"
-        case .draw: "和"
+        case .win: String(localized: "W")
+        case .loss: String(localized: "L")
+        case .draw: String(localized: "D")
         }
     }
 }

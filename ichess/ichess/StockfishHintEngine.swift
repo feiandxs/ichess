@@ -61,8 +61,8 @@ enum HintError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingNetwork: "缺少棋力引擎资源，请重新安装完整版本。"
-        case .unavailable: "棋力引擎暂不可用，请稍后再试。"
+        case .missingNetwork: String(localized: "Chess engine files are missing. Please reinstall the full app.")
+        case .unavailable: String(localized: "The chess engine is unavailable. Please try again.")
         }
     }
 }
