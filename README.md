@@ -1,6 +1,6 @@
-# ichess
+# Nook Chess / 自己下国际象棋
 
-SwiftUI 单机国际象棋练习应用。ChessKit 负责棋规，自带轻量引擎负责电脑对手，Stockfish 17 负责提示。
+SwiftUI 单机国际象棋练习应用。ChessKit 负责棋规，轻量引擎和 Stockfish 17 提供不同难度的电脑对手，Stockfish 同时负责提示。
 
 ## 构建
 
@@ -18,6 +18,21 @@ bash scripts/download_stockfish_networks.sh
 通过 [ChessKitEngine](https://github.com/chesskit-app/chesskit-engine) 调用 Stockfish 17，固定最大深度 15、搜索时间上限 1000 ms、单线程，不随玩家积分降低强度。引擎初始化另需时间。提示显示推荐走法的起点和终点，不提供送子警告或文字解释。
 
 分析期间仍可操作棋盘；局面变化后丢弃旧结果，同一时间只运行一次提示分析。
+
+## 难度
+
+首次启动选择水平，之后通过棋盘上方的“难度”修改。开局前立即生效；对局中修改只影响下一盘。当前对局难度随存档恢复，偏好单独保存。
+
+| 档位 | 电脑对手 |
+| --- | --- |
+| 新手 | 轻量引擎，1 层搜索，随机窗口 90 |
+| 入门 | 轻量引擎，2 层搜索，随机窗口 35 |
+| 熟练 | Stockfish，UCI_Elo 1400 |
+| 进阶 | Stockfish，UCI_Elo 1800 |
+| 高手 | Stockfish，UCI_Elo 2200 |
+| 大师挑战 | Stockfish，UCI_Elo 2600 |
+
+Stockfish 对手使用内置限强参数，最大深度 15、搜索时间 1000 ms。参数不是 FIDE 真人等级分；低档轻量引擎没有校准 Elo。练习积分只记录成长，不控制难度。提示始终关闭限强，提示和对手请求串行执行。
 
 ## 第三方组件
 
