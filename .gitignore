@@ -34,3 +34,7 @@ npm-debug.log*
 *~
 .idea/
 .vscode/
+
+# Downloaded Stockfish networks (scripts/download_stockfish_networks.sh)
+ichess/ichess/*.nnue
+ichess/ichess/*.nnue.download

@@ -11,6 +11,7 @@ struct ContentView: View {
     @EnvironmentObject private var theme: ThemeStore
     @State private var showPieceSets = false
     @State private var showGameOver = false
+    @State private var showResignConfirmation = false
 
     var body: some View {
         let palette = theme.palette
@@ -49,7 +50,7 @@ struct ContentView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
 
-                HStack(spacing: 10) {
+                HStack(spacing: 6) {
                     toolbarButton("悔棋", systemImage: "arrow.uturn.backward", palette: palette) {
                         game.undo()
                     }
@@ -59,10 +60,15 @@ struct ContentView: View {
                         game.restart()
                     }
 
-                    toolbarButton("提示", systemImage: "lightbulb", palette: palette) {
+                    toolbarButton(game.isHintThinking ? "分析" : "提示", systemImage: "lightbulb", palette: palette) {
                         game.showHint()
                     }
                     .disabled(!game.canHint)
+
+                    toolbarButton("认输", systemImage: "flag", palette: palette) {
+                        showResignConfirmation = true
+                    }
+                    .disabled(game.isGameOver)
 
                     Spacer()
                 }
@@ -93,6 +99,20 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(theme.isDark ? .dark : .light)
+        .alert("提示暂不可用", isPresented: Binding(
+            get: { game.hintError != nil },
+            set: { if !$0 { game.hintError = nil } }
+        )) {
+            Button("好") { game.hintError = nil }
+        } message: {
+            Text(game.hintError ?? "")
+        }
+        .alert("确认认输？", isPresented: $showResignConfirmation) {
+            Button("继续下棋", role: .cancel) { }
+            Button("认输", role: .destructive) { game.resign() }
+        } message: {
+            Text("本局将记为负局，并按现有规则结算积分。")
+        }
         .onAppear {
             if game.isGameOver { showGameOver = true }
         }
@@ -122,7 +142,7 @@ struct ContentView: View {
             Label(title, systemImage: systemImage)
                 .labelStyle(.titleAndIcon)
                 .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(palette.chipFill)
                 .clipShape(Capsule())

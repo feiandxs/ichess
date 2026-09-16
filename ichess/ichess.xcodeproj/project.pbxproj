@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		26F33312 /* ChessKit in Frameworks */ = {isa = PBXBuildFile; productRef = 26F33311 /* ChessKit */; };
+		26F33322 /* ChessKitEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 26F33321 /* ChessKitEngine */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				26F33312 /* ChessKit in Frameworks */,
+				26F33322 /* ChessKitEngine in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +73,7 @@
 			name = ichess;
 			packageProductDependencies = (
 				26F33311 /* ChessKit */,
+				26F33321 /* ChessKitEngine */,
 			);
 			productName = ichess;
 			productReference = 26F332FB30566E7600F9DD99 /* ichess.app */;
@@ -102,6 +105,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				26F33310 /* XCRemoteSwiftPackageReference "chesskit-swift" */,
+				26F33320 /* XCRemoteSwiftPackageReference "chesskit-engine" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 26F332FC30566E7600F9DD99 /* Products */;
@@ -370,6 +374,14 @@
 				minimumVersion = 0.17.0;
 			};
 		};
+		26F33320 /* XCRemoteSwiftPackageReference "chesskit-engine" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/chesskit-app/chesskit-engine";
+			requirement = {
+				kind = revision;
+				revision = a2b47697e5f90418623a1e06c58fd36cd3289fca;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -377,6 +389,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 26F33310 /* XCRemoteSwiftPackageReference "chesskit-swift" */;
 			productName = ChessKit;
+		};
+		26F33321 /* ChessKitEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 26F33320 /* XCRemoteSwiftPackageReference "chesskit-engine" */;
+			productName = ChessKitEngine;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

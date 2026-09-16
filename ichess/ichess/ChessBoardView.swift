@@ -73,6 +73,11 @@ struct ChessBoardView: View {
             }
             .frame(width: side, height: side, alignment: .topLeading)
             .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
+                    .strokeBorder(palette.boardBorder, lineWidth: 1.5)
+                    .allowsHitTesting(false)
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .allowsHitTesting(!game.isEngineThinking)
             .onChange(of: game.lastPlayed?.id) { _, _ in
@@ -198,8 +203,8 @@ struct PieceSprite: View {
         let height = squareSize * 0.90 * ratio
         let flip = kind == .knight && facing.file == .g
         Group {
-            if let ui = pieceSets.image(side: piece.color.side, kind: kind) {
-                Image(uiImage: ui)
+            if let image = pieceSets.image(side: piece.color.side, kind: kind) {
+                image
                     .resizable()
                     .scaledToFit()
             }

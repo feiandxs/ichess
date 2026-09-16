@@ -37,20 +37,25 @@ struct PieceSetSettingsView: View {
                 }
             }
             .navigationTitle("棋子")
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("完成") { dismiss() }
                 }
             }
         }
+        #if os(macOS)
+        .frame(minWidth: 480, minHeight: 500)
+        #endif
     }
 
     private func preview(_ set: PieceSet) -> some View {
         HStack(spacing: 2) {
             ForEach([PieceKind.pawn, .knight, .bishop, .rook, .queen, .king], id: \.rawValue) { kind in
-                if let ui = PieceImageCache.shared.image(setID: set.id, name: "white_\(kind.rawValue)") {
-                    Image(uiImage: ui)
+                if let image = PieceImageCache.shared.image(setID: set.id, name: "white_\(kind.rawValue)") {
+                    image
                         .resizable()
                         .scaledToFit()
                         .frame(width: 22, height: 28)
