@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — black rook</title>
+  <g fill="#607783" stroke="#213640" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M23 30H41L40 48L45 58H19L24 48Z"/><path d="M16 12H24V20H28V12H36V20H40V12H48V29L43 34H21L16 29Z"/><path d="M23 49H41" fill="none"/><path d="M18 58H46L51 65V68H13V65Z"/>
+  </g>
+</svg>

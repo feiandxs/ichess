@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — white king</title>
+  <g transform="translate(-3.2 6.12) scale(1.1 0.91)" fill="#F7F8F6" stroke="#425761" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M24 34H40L39 46Q39 52 46 58H18Q25 52 25 46Z"/><path d="M20 23Q18 24 20 28L23 34Q24 37 27 37H37Q40 37 41 34L44 28Q46 24 44 23L38 20H26Z"/><path d="M28 5H36V11H42V18H36V24H28V18H22V11H28Z"/><path d="M23 43H41" fill="none"/><path d="M20 58H44Q47 58 49 62L51 65Q52 68 48 68H16Q12 68 13 65L15 62Q17 58 20 58Z"/>
+  </g>
+</svg>

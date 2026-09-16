@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — black knight</title>
+  <g transform="translate(0 0)" fill="#607783" stroke="#213640" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M17 55Q17 44 25 38L31 33L26 30L22 33Q20 35 17 33L10 30Q8 29 10 26L15 20Q17 18 21 17L25 16L29 9Q30 6 32 9L37 15L42 14Q45 14 48 19Q53 25 52 34L50 45Q49 51 46 55Z"/><circle cx="29" cy="23" r="2.5" fill="#213640" stroke="none"/><path d="M19 55H45Q48 55 50 59L52 62Q53 65 49 65H15Q11 65 12 62L14 59Q16 55 19 55Z"/>
+  </g>
+</svg>
