@@ -7,23 +7,23 @@ nonisolated enum Difficulty: String, CaseIterable, Codable, Identifiable, Sendab
 
     var title: String {
         switch self {
-        case .novice: "新手"
-        case .beginner: "入门"
-        case .practiced: "熟练"
-        case .advanced: "进阶"
-        case .expert: "高手"
-        case .master: "大师挑战"
+        case .novice: String(localized: "Newcomer")
+        case .beginner: String(localized: "Beginner")
+        case .practiced: String(localized: "Intermediate")
+        case .advanced: String(localized: "Advanced")
+        case .expert: String(localized: "Expert")
+        case .master: String(localized: "Master Challenge")
         }
     }
 
     var detail: String {
         switch self {
-        case .novice: "刚学会规则，轻松练习"
-        case .beginner: "会基本吃子、保护棋子"
-        case .practiced: "能发现常见战术，考虑对方反击"
-        case .advanced: "经常下棋，想要更强的挑战"
-        case .expert: "有较丰富的对局经验"
-        case .master: "挑战高强度电脑对手"
+        case .novice: String(localized: "Learn the rules at a relaxed pace")
+        case .beginner: String(localized: "Practice captures and protecting pieces")
+        case .practiced: String(localized: "Spot tactics and anticipate replies")
+        case .advanced: String(localized: "A stronger challenge for regular players")
+        case .expert: String(localized: "For experienced players")
+        case .master: String(localized: "Take on a powerful opponent")
         }
     }
 

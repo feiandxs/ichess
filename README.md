@@ -2,6 +2,8 @@
 
 SwiftUI 单机国际象棋练习应用。ChessKit 负责棋规，轻量引擎和 Stockfish 17 提供不同难度的电脑对手，Stockfish 同时负责提示。
 
+支持英文和简体中文，跟随系统的语言偏好，未支持的语言回退到英文。界面文案集中在 `ichess/ichess/Localizable.xcstrings`，应用名称分别为 Nook Chess 和自己下国际象棋。
+
 ## 构建
 
 首次构建前执行：

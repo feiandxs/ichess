@@ -22,7 +22,7 @@ struct PieceSetSettingsView: View {
                             Text(set.name)
                                 .foregroundStyle(.primary)
                                 .font(.body.weight(.semibold))
-                            Text(set.source)
+                            Text(set.localizedSource)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -36,13 +36,13 @@ struct PieceSetSettingsView: View {
                     .padding(.vertical, 4)
                 }
             }
-            .navigationTitle("棋子")
+            .navigationTitle("Pieces")
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button("Done") { dismiss() }
                 }
             }
         }

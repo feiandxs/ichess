@@ -89,11 +89,11 @@ struct ChessBoardView: View {
                 }
             }
         }
-        .confirmationDialog("升变成", isPresented: promotionPresented, titleVisibility: .visible) {
-            Button("后") { game.completePromotion(to: .queen) }
-            Button("车") { game.completePromotion(to: .rook) }
-            Button("象") { game.completePromotion(to: .bishop) }
-            Button("马") { game.completePromotion(to: .knight) }
+        .confirmationDialog("Promote Pawn", isPresented: promotionPresented, titleVisibility: .visible) {
+            Button("Queen") { game.completePromotion(to: .queen) }
+            Button("Rook") { game.completePromotion(to: .rook) }
+            Button("Bishop") { game.completePromotion(to: .bishop) }
+            Button("Knight") { game.completePromotion(to: .knight) }
         }
     }
 

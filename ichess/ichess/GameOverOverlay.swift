@@ -64,7 +64,7 @@ struct GameOverOverlay: View {
                     .foregroundStyle(palette.secondaryText)
 
                 Button(action: onRematch) {
-                    Text("再来一盘")
+                    Text("Play Again")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
@@ -74,7 +74,7 @@ struct GameOverOverlay: View {
                 }
                 .padding(.top, 4)
 
-                Button("看看棋盘", action: onDismiss)
+                Button("View Board", action: onDismiss)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(palette.secondaryText)
             }
@@ -129,17 +129,17 @@ enum GameOutcome {
 
     var title: String {
         switch self {
-        case .win: "你赢了"
-        case .loss: "将死了"
-        case .resigned: "你认输了"
-        case .draw: "和棋"
+        case .win: String(localized: "You Won")
+        case .loss: String(localized: "Checkmate")
+        case .resigned: String(localized: "You Resigned")
+        case .draw: String(localized: "Draw")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .win: "这局下得漂亮"
-        case .loss, .resigned: "再试一盘就熟了"
+        case .win: String(localized: "Well played!")
+        case .loss, .resigned: String(localized: "Keep practicing. Try another game!")
         case .draw(let reason): reason
         }
     }

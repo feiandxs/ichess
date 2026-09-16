@@ -33,19 +33,19 @@ struct DifficultySettingsView: View {
                         .buttonStyle(.plain)
                     }
                 } header: {
-                    Text(game.hasChosenDifficulty ? "当前对局：\(game.activeDifficulty.title)" : "不确定选哪档？可以先选入门。")
+                    Text(game.hasChosenDifficulty ? String(localized: "Current game: \(game.activeDifficulty.title)") : String(localized: "Not sure? Start with Beginner."))
                 } footer: {
-                    Text("开局前选择立即生效；对局中修改从下一盘生效。难度不会改变你的练习积分。")
+                    Text("Choose before your first move to apply immediately. Changes during a game apply next game. Difficulty does not change your practice points.")
                 }
             }
-            .navigationTitle(game.hasChosenDifficulty ? "选择难度" : "选择你的水平")
+            .navigationTitle(game.hasChosenDifficulty ? String(localized: "Choose Difficulty") : String(localized: "Choose Your Level"))
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 if game.hasChosenDifficulty {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("完成") { dismiss() }
+                        Button("Done") { dismiss() }
                     }
                 }
             }

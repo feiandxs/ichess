@@ -18,6 +18,14 @@ struct PieceSet: Identifiable, Hashable, Codable {
     let style: String
 
     var isSculpt: Bool { style == "sculpt" }
+
+    var localizedSource: String {
+        switch source {
+        case "自绘": String(localized: "Original artwork")
+        case "自绘 SVG": String(localized: "Original SVG artwork")
+        default: source
+        }
+    }
 }
 
 @MainActor
