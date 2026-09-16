@@ -5,7 +5,11 @@
 
 import Combine
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#else
+import AppKit
+#endif
 
 struct PieceSet: Identifiable, Hashable, Codable {
     let id: String
@@ -43,7 +47,7 @@ final class PieceSetStore: ObservableObject {
         }
     }
 
-    func image(side: SideColor, kind: PieceKind) -> UIImage? {
+    func image(side: SideColor, kind: PieceKind) -> Image? {
         PieceImageCache.shared.image(setID: selectedID, name: "\(side.assetPrefix)_\(kind.rawValue)")
     }
 
@@ -71,10 +75,10 @@ enum PieceImageCache {
     static let shared = Cache()
 
     final class Cache {
-        private var images: [String: UIImage] = [:]
+        private var images: [String: Image] = [:]
         private let lock = NSLock()
 
-        func image(setID: String, name: String) -> UIImage? {
+        func image(setID: String, name: String) -> Image? {
             let key = "\(setID)/\(name)"
             lock.lock()
             if let cached = images[key] {
@@ -85,7 +89,14 @@ enum PieceImageCache {
 
             let url = Bundle.main.url(forResource: "\(setID)__\(name)", withExtension: "png", subdirectory: "PieceSets")
                 ?? Bundle.main.url(forResource: "\(setID)__\(name)", withExtension: "png")
-            guard let url, let image = UIImage(contentsOfFile: url.path) else { return nil }
+            guard let url else { return nil }
+            #if canImport(UIKit)
+            guard let nativeImage = UIImage(contentsOfFile: url.path) else { return nil }
+            let image = Image(uiImage: nativeImage)
+            #else
+            guard let nativeImage = NSImage(contentsOf: url) else { return nil }
+            let image = Image(nsImage: nativeImage)
+            #endif
 
             lock.lock()
             images[key] = image

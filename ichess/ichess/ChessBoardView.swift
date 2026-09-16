@@ -203,8 +203,8 @@ struct PieceSprite: View {
         let height = squareSize * 0.90 * ratio
         let flip = kind == .knight && facing.file == .g
         Group {
-            if let ui = pieceSets.image(side: piece.color.side, kind: kind) {
-                Image(uiImage: ui)
+            if let image = pieceSets.image(side: piece.color.side, kind: kind) {
+                image
                     .resizable()
                     .scaledToFit()
             }
