@@ -6,11 +6,20 @@ actor StockfishHintEngine {
 
     private var engine: Engine?
     private var isSearching = false
+    private var waiting: [CheckedContinuation<Void, Never>] = []
 
-    func bestMove(fen: String) async throws -> String {
-        guard !isSearching else { throw HintError.unavailable }
+    func bestMove(fen: String, elo: Int? = nil) async throws -> String {
+        if isSearching {
+            await withCheckedContinuation { waiting.append($0) }
+        }
         isSearching = true
-        defer { isSearching = false }
+        defer {
+            if waiting.isEmpty {
+                isSearching = false
+            } else {
+                waiting.removeFirst().resume()
+            }
+        }
 
         let engine: Engine
         if let existing = self.engine {
@@ -31,6 +40,10 @@ actor StockfishHintEngine {
         }
 
         guard let stream = await engine.responseStream else { throw HintError.unavailable }
+        await engine.send(command: .setoption(id: "UCI_LimitStrength", value: elo == nil ? "false" : "true"))
+        if let elo {
+            await engine.send(command: .setoption(id: "UCI_Elo", value: String(elo)))
+        }
         await engine.send(command: .position(.fen(fen)))
         await engine.send(command: .go(depth: 15, movetime: 1000))
         for await response in stream {
@@ -48,8 +61,8 @@ enum HintError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingNetwork: "缺少提示引擎资源，请重新安装完整版本。"
-        case .unavailable: "暂时无法获取提示，请稍后再试。"
+        case .missingNetwork: "缺少棋力引擎资源，请重新安装完整版本。"
+        case .unavailable: "棋力引擎暂不可用，请稍后再试。"
         }
     }
 }

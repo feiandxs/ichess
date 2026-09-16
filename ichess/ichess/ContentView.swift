@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var showPieceSets = false
     @State private var showGameOver = false
     @State private var showResignConfirmation = false
+    @State private var showDifficulty = false
 
     var body: some View {
         let palette = theme.palette
@@ -24,7 +25,7 @@ struct ContentView: View {
                             .font(.headline)
                             .foregroundStyle(palette.primaryText)
                         HStack(spacing: 8) {
-                            Text(game.ratingLine)
+                            Text("练习积分 \(game.ratingLine)")
                                 .font(.subheadline.weight(.semibold))
                                 .monospacedDigit()
                             Text(game.streakLine)
@@ -76,6 +77,25 @@ struct ContentView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 8)
 
+                HStack {
+                    Button {
+                        showDifficulty = true
+                    } label: {
+                        Label("难度：\(game.activeDifficulty.title)", systemImage: "slider.horizontal.3")
+                    }
+                    .buttonStyle(.plain)
+                    .font(.subheadline.weight(.semibold))
+                    if game.selectedDifficulty != game.activeDifficulty {
+                        Text("下盘：\(game.selectedDifficulty.title)")
+                            .font(.caption)
+                            .foregroundStyle(palette.secondaryText)
+                    }
+                    Spacer()
+                }
+                .foregroundStyle(palette.primaryText)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 8)
+
                 ChessBoardView()
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
@@ -99,6 +119,15 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(theme.isDark ? .dark : .light)
+        .alert("电脑暂时无法走棋", isPresented: Binding(
+            get: { game.engineError != nil },
+            set: { if !$0 { game.engineError = nil } }
+        )) {
+            Button("重试") { game.resumeIfNeeded() }
+            Button("取消", role: .cancel) { game.engineError = nil }
+        } message: {
+            Text(game.engineError ?? "")
+        }
         .alert("提示暂不可用", isPresented: Binding(
             get: { game.hintError != nil },
             set: { if !$0 { game.hintError = nil } }
@@ -114,6 +143,7 @@ struct ContentView: View {
             Text("本局将记为负局，并按现有规则结算积分。")
         }
         .onAppear {
+            showDifficulty = !game.hasChosenDifficulty
             if game.isGameOver { showGameOver = true }
         }
         .onChange(of: game.isGameOver) { _, over in
@@ -129,6 +159,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showPieceSets) {
             PieceSetSettingsView()
+        }
+        .sheet(isPresented: $showDifficulty) {
+            DifficultySettingsView()
         }
     }
 

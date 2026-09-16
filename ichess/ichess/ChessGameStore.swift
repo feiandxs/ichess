@@ -32,6 +32,12 @@ final class ChessGameStore: ObservableObject {
     @Published private(set) var hasResigned = false
     @Published private(set) var isHintThinking = false
     @Published var hintError: String?
+    @Published var engineError: String?
+    @Published private(set) var selectedDifficulty: Difficulty = .beginner
+    @Published private(set) var activeDifficulty: Difficulty = .beginner
+    @Published private(set) var hasChosenDifficulty = false
+
+    private static let difficultyKey = "nookchess.difficulty"
 
     let playerColor: Piece.Color = .white
     /// Restored games should not replay the last move animation.
@@ -53,7 +59,7 @@ final class ChessGameStore: ObservableObject {
 
     var canUndo: Bool { !hasResigned && !history.isEmpty }
     var canHint: Bool {
-        !isHintThinking && !isEngineThinking && !isGameOver && pendingPromotion == nil && sideToMove == playerColor
+        hasChosenDifficulty && !isHintThinking && !isEngineThinking && !isGameOver && pendingPromotion == nil && sideToMove == playerColor
     }
 
     var isGameOver: Bool {
@@ -95,7 +101,7 @@ final class ChessGameStore: ObservableObject {
     var streakLine: String {
         if winStreak > 0 { return "连胜 \(winStreak)" }
         if lossStreak > 0 { return "连败 \(lossStreak)" }
-        return "超级新手"
+        return "练习中"
     }
 
     var recentLine: String {
@@ -103,6 +109,12 @@ final class ChessGameStore: ObservableObject {
     }
 
     init() {
+        if let raw = UserDefaults.standard.string(forKey: Self.difficultyKey),
+           let difficulty = Difficulty(rawValue: raw) {
+            selectedDifficulty = difficulty
+            activeDifficulty = difficulty
+            hasChosenDifficulty = true
+        }
         let stats = Strength.load()
         rating = stats.rating
         winStreak = stats.winStreak
@@ -110,6 +122,17 @@ final class ChessGameStore: ObservableObject {
         lastRatingDelta = stats.lastDelta
         recentResults = stats.recent
         restore()
+    }
+
+    func selectDifficulty(_ difficulty: Difficulty) {
+        selectedDifficulty = difficulty
+        hasChosenDifficulty = true
+        UserDefaults.standard.set(difficulty.rawValue, forKey: Self.difficultyKey)
+        if history.isEmpty && board.position.fen == Board().position.fen && !isGameOver {
+            activeDifficulty = difficulty
+        }
+        persist()
+        requestEngineMoveIfNeeded()
     }
 
     var statusText: String {
@@ -140,6 +163,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     func tap(_ square: Square) {
+        guard hasChosenDifficulty else { return }
         if pendingPromotion != nil || isGameOver || isEngineThinking { return }
         guard sideToMove == playerColor else { return }
         hint = nil
@@ -224,6 +248,8 @@ final class ChessGameStore: ObservableObject {
         positionRevision += 1
         cancelEngine()
         hasResigned = false
+        activeDifficulty = selectedDifficulty
+        engineError = nil
         board = Board()
         history = []
         selected = nil
@@ -259,21 +285,39 @@ final class ChessGameStore: ObservableObject {
     }
 
     private func requestEngineMoveIfNeeded() {
-        guard !isEngineThinking else { return }
+        guard hasChosenDifficulty, !isEngineThinking else { return }
         guard !isGameOver, pendingPromotion == nil, sideToMove != playerColor else { return }
         isEngineThinking = true
         selected = nil
         hint = nil
         let snapshot = board
-        let strength = Strength.snapshot(rating)
+        let difficulty = activeDifficulty
+        engineError = nil
         engineTask = Task { [weak self] in
-            async let chosen = Task.detached(priority: .userInitiated) {
-                SimpleChessEngine.chooseMove(on: snapshot, depth: strength.depth, noiseWindow: strength.noiseWindow)
-            }.value
-            try? await Task.sleep(for: .milliseconds(420))
-            let move = await chosen
-            guard let self, !Task.isCancelled else { return }
-            self.applyEngineMove(move)
+            do {
+                let move = try await Task.detached(priority: .userInitiated) { () async throws -> EngineMove? in
+                    if let elo = difficulty.engineElo {
+                        let lan = try await StockfishHintEngine.shared.bestMove(fen: snapshot.position.fen, elo: elo)
+                        guard let parsed = EngineLANParser.parse(move: lan, for: snapshot.position.sideToMove, in: snapshot.position),
+                              snapshot.legalMoves(forPieceAt: parsed.start).contains(parsed.end) else {
+                            throw HintError.unavailable
+                        }
+                        return EngineMove(from: parsed.start, to: parsed.end, promotion: parsed.promotedPiece?.kind)
+                    }
+                    return SimpleChessEngine.chooseMove(
+                        on: snapshot,
+                        depth: difficulty == .novice ? 1 : 2,
+                        noiseWindow: difficulty == .novice ? 90 : 35
+                    )
+                }.value
+                try await Task.sleep(for: .milliseconds(420))
+                guard let self, !Task.isCancelled else { return }
+                self.applyEngineMove(move)
+            } catch {
+                guard let self, !Task.isCancelled else { return }
+                self.isEngineThinking = false
+                self.engineError = error.localizedDescription
+            }
         }
     }
 
@@ -301,7 +345,8 @@ final class ChessGameStore: ObservableObject {
             lastFrom: lastPlayed.map { $0.from.notation },
             lastTo: lastPlayed.map { $0.to.notation },
             hasRatedThisGame: hasRatedThisGame,
-            hasResigned: hasResigned
+            hasResigned: hasResigned,
+            difficulty: activeDifficulty
         )
         SavedGame.save(snapshot)
     }
@@ -310,6 +355,7 @@ final class ChessGameStore: ObservableObject {
         guard let saved = SavedGame.load() else { return }
         guard let position = Position(fen: saved.fen) else { return }
         board = Board(position: position)
+        activeDifficulty = saved.difficulty ?? .novice
         hasResigned = saved.hasResigned ?? false
         history = saved.history.compactMap { fen in
             guard let pos = Position(fen: fen) else { return nil }
@@ -406,11 +452,12 @@ private struct SavedGame: Codable {
     var lastTo: String?
     var hasRatedThisGame: Bool?
     var hasResigned: Bool?
+    var difficulty: Difficulty?
 
     private static var url: URL {
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        let dir = folder.appendingPathComponent("ichess", isDirectory: true)
+        let dir = folder.appendingPathComponent("nookchess", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("saved-game.json")
     }
@@ -471,35 +518,11 @@ enum Strength {
     static let minRating = 400
     static let maxRating = 1800
 
-    struct Snapshot {
-        var depth: Int
-        var noiseWindow: Int
-    }
-
-    static func snapshot(_ rating: Int) -> Snapshot {
-        let depth: Int
-        switch rating {
-        case ..<650: depth = 1
-        case ..<950: depth = 2
-        case ..<1250: depth = 3
-        default: depth = 4
-        }
-        let noise: Int
-        switch rating {
-        case ..<650: noise = 90
-        case ..<800: noise = 55
-        case ..<1000: noise = 35
-        case ..<1200: noise = 18
-        default: noise = 0
-        }
-        return Snapshot(depth: depth, noiseWindow: noise)
-    }
-
-    private static let ratingKey = "ichess.rating"
-    private static let winKey = "ichess.winStreak"
-    private static let lossKey = "ichess.lossStreak"
-    private static let deltaKey = "ichess.lastRatingDelta"
-    private static let recentKey = "ichess.recentResults"
+    private static let ratingKey = "nookchess.rating"
+    private static let winKey = "nookchess.winStreak"
+    private static let lossKey = "nookchess.lossStreak"
+    private static let deltaKey = "nookchess.lastRatingDelta"
+    private static let recentKey = "nookchess.recentResults"
 
     struct Stats {
         var rating: Int
