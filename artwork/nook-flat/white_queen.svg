@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — white queen</title>
+  <g transform="translate(0 0)" fill="#F7F8F6" stroke="#425761" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M23 32H41L40 42Q40 49 47 55H17Q24 49 24 42Z"/><path d="M12 23L22 30L25 14L32 26L39 14L42 30L52 23L47 36Q46 39 42 39H22Q18 39 17 36Z"/><circle cx="12" cy="20" r="3.8"/><circle cx="25" cy="10" r="3.8"/><circle cx="39" cy="10" r="3.8"/><circle cx="52" cy="20" r="3.8"/><path d="M19 55H45Q48 55 50 59L52 62Q53 65 49 65H15Q11 65 12 62L14 59Q16 55 19 55Z"/>
+  </g>
+</svg>
