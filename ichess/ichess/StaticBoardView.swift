@@ -31,6 +31,9 @@ struct StaticBoardView: View {
                         }
                     }
                 }
+                if theme.showsCoordinates {
+                    BoardCoordinatesView(squareSize: square, palette: palette)
+                }
                 ForEach(arrows) { arrow in
                     BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
                         .allowsHitTesting(false)

@@ -12,9 +12,21 @@ final class ThemeStore: ObservableObject {
         didSet { UserDefaults.standard.set(isDark, forKey: Self.key) }
     }
 
+    /// 棋盘边缘的坐标标注（a–h、1–8）。
+    @Published var showsCoordinates: Bool {
+        didSet { UserDefaults.standard.set(showsCoordinates, forKey: Self.coordinatesKey) }
+    }
+
+    /// 对手走子动画的速度；自己走的子始终保持利落。
+    @Published var moveSpeed: MoveSpeed {
+        didSet { UserDefaults.standard.set(moveSpeed.rawValue, forKey: Self.moveSpeedKey) }
+    }
+
     var palette: BoardPalette { BoardPalette(isDark: isDark) }
 
     private static let key = "boardIsDark"
+    private static let coordinatesKey = "boardShowsCoordinates"
+    private static let moveSpeedKey = "nookchess.moveSpeed"
 
     init() {
         if UserDefaults.standard.object(forKey: Self.key) == nil {
@@ -22,10 +34,35 @@ final class ThemeStore: ObservableObject {
         } else {
             isDark = UserDefaults.standard.bool(forKey: Self.key)
         }
+        moveSpeed = UserDefaults.standard.string(forKey: Self.moveSpeedKey).flatMap(MoveSpeed.init(rawValue:)) ?? .normal
+        showsCoordinates = UserDefaults.standard.object(forKey: Self.coordinatesKey) as? Bool ?? true
     }
 
     func toggle() {
         isDark.toggle()
+    }
+}
+
+enum MoveSpeed: String, CaseIterable, Identifiable {
+    case fast, normal, slow
+
+    var id: String { rawValue }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .fast: "Fast"
+        case .normal: "Normal"
+        case .slow: "Slow"
+        }
+    }
+
+    /// 对手走一步的飞行时长（秒）。
+    var opponentDuration: Double {
+        switch self {
+        case .fast: 0.34
+        case .normal: 0.75
+        case .slow: 1.2
+        }
     }
 }
 
@@ -52,6 +89,14 @@ struct BoardPalette {
         isDark
             ? Color(red: 22 / 255, green: 35 / 255, blue: 43 / 255)
             : Color(red: 176 / 255, green: 196 / 255, blue: 206 / 255)
+    }
+
+    /// 坐标标注：浅格上用深色、深格上用浅色，低调但看得清。
+    func coordinate(onLight: Bool) -> Color {
+        if isDark {
+            return onLight ? Color(red: 142 / 255, green: 166 / 255, blue: 178 / 255) : Color(red: 120 / 255, green: 146 / 255, blue: 158 / 255)
+        }
+        return onLight ? Color(red: 112 / 255, green: 140 / 255, blue: 154 / 255) : Color(red: 244 / 255, green: 248 / 255, blue: 250 / 255)
     }
 
     var lastMove: Color {
@@ -110,6 +155,8 @@ struct BoardPalette {
             isDark ? Color(red: 1.0, green: 0.72, blue: 0.20) : Color(red: 0.95, green: 0.58, blue: 0.05)
         case .reply:
             danger
+        case .opponent:
+            isDark ? Color(red: 0.50, green: 0.88, blue: 0.38) : Color(red: 0.20, green: 0.62, blue: 0.12)
         }
     }
 

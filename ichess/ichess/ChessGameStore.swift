@@ -127,6 +127,8 @@ final class ChessGameStore: ObservableObject {
     let playerColor: Piece.Color = .white
     /// Restored games should not replay the last move animation.
     private(set) var shouldAnimateLastMove = false
+    /// 对手的走子动画正在播放（试走里的应对）；说明文字等动画结束再出现。由棋盘视图在动画结束时清除。
+    @Published var opponentMoveAnimating = false
     /// 本局完整着法记录，按顺序从第一步开始。
     private(set) var moves: [MoveRecord] = []
     private var engineTask: Task<Void, Never>?
@@ -180,6 +182,10 @@ final class ChessGameStore: ObservableObject {
         // 提示优先；没有提示时显示上一步点评里更好的走法。
         if hintLevel == 0, showsFeedback, feedbackPly == moves.count, let feedback, feedback.verdict.isProblem, let better = feedback.better {
             return [BoardArrow(from: better.from, to: better.to, style: .better)]
+        }
+        // 对手刚走的一步：留一支淡箭头，直到玩家落子。
+        if let last = lastPlayed, last.piece.color != playerColor, sideToMove == playerColor, !isGameOver {
+            return [BoardArrow(from: last.from, to: last.to, style: .opponent)]
         }
         return []
     }
@@ -962,6 +968,15 @@ final class ChessGameStore: ObservableObject {
         if note == nil { requestSandboxReply() }
     }
 
+    /// 兜底：视图没来得及清除时，2 秒后自动解除。
+    private func markOpponentAnimating() {
+        opponentMoveAnimating = true
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            self?.opponentMoveAnimating = false
+        }
+    }
+
     /// 让引擎（满力）为对手选应对，走在沙盒上并解释。
     private func requestSandboxReply() {
         guard let state = sandbox else { return }
@@ -996,6 +1011,7 @@ final class ChessGameStore: ObservableObject {
                     note: .reply(note)
                 ))
                 shouldAnimateLastMove = true
+                markOpponentAnimating()
                 sandbox = state
             } catch is CancellationError {
             } catch {

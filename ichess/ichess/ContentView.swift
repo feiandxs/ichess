@@ -291,6 +291,19 @@ struct ContentView: View {
                 Label("Show win chances", systemImage: "chart.line.uptrend.xyaxis")
             }
             Menu {
+                Picker("Move animation speed", selection: $theme.moveSpeed) {
+                    ForEach(MoveSpeed.allCases) { speed in
+                        Text(speed.title).tag(speed)
+                    }
+                }
+                .pickerStyle(.inline)
+            } label: {
+                Label("Move animation speed", systemImage: "speedometer")
+            }
+            Toggle(isOn: $theme.showsCoordinates) {
+                Label("Show coordinates", systemImage: "textformat.abc")
+            }
+            Menu {
                 Picker("Language", selection: $language.language) {
                     ForEach(AppLanguage.allCases) { option in
                         Text(verbatim: option.displayName).tag(option)

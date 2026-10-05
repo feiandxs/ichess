@@ -36,6 +36,7 @@ struct ChessBoardView: View {
 
     @State private var flight: PlayedMove?
     @State private var flightProgress: CGFloat = 1
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let palette = theme.palette
@@ -54,8 +55,13 @@ struct ChessBoardView: View {
                     }
                 }
 
+                if theme.showsCoordinates {
+                    BoardCoordinatesView(squareSize: square, palette: palette)
+                }
+
                 // 箭头画在棋子之上、飞行动画之下。
-                ForEach(game.arrows) { arrow in
+                // 对手的动画播完再出现应对 / 上一步箭头。
+                ForEach(game.arrows.filter { flight == nil || ($0.style != .reply && $0.style != .opponent) }) { arrow in
                     BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
                         .allowsHitTesting(false)
                         .transition(.opacity)
@@ -71,13 +77,14 @@ struct ChessBoardView: View {
                     if let captured = flight.captured {
                         PieceSprite(piece: captured, facing: captured.square, squareSize: square)
                             .position(center(of: captured.square, squareSize: square))
-                            .opacity(1 - flightProgress)
-                            .scaleEffect(1 - 0.35 * flightProgress)
+                            .opacity(1 - captureFade)
+                            .scaleEffect(1 - 0.35 * captureFade)
                             .allowsHitTesting(false)
                     }
 
                     PieceSprite(piece: flight.piece, facing: flight.from, squareSize: square)
-                        .scaleEffect(flightScale)
+                        .scaleEffect(reduceMotion ? 1 : flightScale)
+                        .opacity(reduceMotion ? flightProgress : 1)
                         .position(flightPosition(squareSize: square))
                         .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
                         .zIndex(2)
@@ -103,6 +110,7 @@ struct ChessBoardView: View {
                 } else {
                     flight = nil
                     flightProgress = 1
+                    game.opponentMoveAnimating = false
                 }
             }
         }
@@ -128,19 +136,29 @@ struct ChessBoardView: View {
         return 1.22
     }
 
+    /// 被吃的子在飞行后半段才淡出，先让人看清是谁被吃。
+    private var captureFade: CGFloat {
+        min(1, max(0, (flightProgress - 0.5) / 0.4))
+    }
+
     private func startFlight() {
         guard let played = game.shownPlayed else {
             flight = nil
             flightProgress = 1
+            game.opponentMoveAnimating = false
             return
         }
+        // 对手的子按设置的速度慢慢走；玩家自己的子保持利落。减弱动态时只做淡入。
+        let opponent = played.piece.color != game.playerColor
+        let duration = reduceMotion ? 0.25 : (opponent ? theme.moveSpeed.opponentDuration : 0.3)
         flight = played
         flightProgress = 0
-        withAnimation(.easeInOut(duration: 0.34)) {
+        withAnimation(.easeInOut(duration: duration)) {
             flightProgress = 1
         } completion: {
             if flight?.id == played.id {
                 flight = nil
+                game.opponentMoveAnimating = false
             }
         }
     }
@@ -154,6 +172,7 @@ struct ChessBoardView: View {
 
     private func flightPosition(squareSize: CGFloat) -> CGPoint {
         guard let flight else { return .zero }
+        if reduceMotion { return center(of: flight.to, squareSize: squareSize) }
         let from = center(of: flight.from, squareSize: squareSize)
         let to = center(of: flight.to, squareSize: squareSize)
         return TravelPath.point(t: flightProgress, from: from, to: to, knight: flight.isKnight)
@@ -230,6 +249,44 @@ struct ChessBoardView: View {
     }
 }
 
+/// 棋盘边缘坐标：左列格子左上角是数字，底行格子右下角是字母（玩家执白，a1 在左下）。
+/// 画在所有格子之上，不拦截点击。
+struct BoardCoordinatesView: View {
+    let squareSize: CGFloat
+    let palette: BoardPalette
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(0..<8, id: \.self) { row in
+                label("\(8 - row)", onLight: row % 2 == 0, alignment: .topLeading)
+                    .offset(y: CGFloat(row) * squareSize)
+            }
+            ForEach(0..<8, id: \.self) { col in
+                label(String(UnicodeScalar(UInt8(97 + col))), onLight: (7 + col) % 2 == 0, alignment: .bottomTrailing)
+                    .offset(x: CGFloat(col) * squareSize, y: 7 * squareSize)
+            }
+        }
+        .frame(width: squareSize * 8, height: squareSize * 8, alignment: .topLeading)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// 底色取格子本色：空格上看不出来，压在大棋子上时仍能托住字。
+    private func label(_ text: String, onLight: Bool, alignment: Alignment) -> some View {
+        let inset = squareSize * 0.11
+        return Text(verbatim: text)
+            .font(.system(size: max(9, squareSize * 0.17), weight: .bold, design: .rounded))
+            .foregroundStyle(palette.coordinate(onLight: onLight))
+            .padding(.horizontal, squareSize * 0.025)
+            .background(
+                (onLight ? palette.lightSquare : palette.darkSquare).opacity(0.85),
+                in: RoundedRectangle(cornerRadius: squareSize * 0.05, style: .continuous)
+            )
+            .padding(inset)
+            .frame(width: squareSize, height: squareSize, alignment: alignment)
+    }
+}
+
 /// 从一格画到另一格的箭头；马步（1×2）走折线，其余走直线。
 struct BoardArrowView: View {
     let arrow: BoardArrow
@@ -274,7 +331,7 @@ struct BoardArrowView: View {
             }
             .fill(color)
         }
-        .opacity(0.88)
+        .opacity(arrow.style == .opponent ? 0.5 : 0.88)
     }
 
     private func center(_ square: Square) -> CGPoint {

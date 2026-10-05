@@ -136,7 +136,7 @@ struct CoachPanelView: View {
 
     @ViewBuilder
     private func sandboxMessage(palette: BoardPalette) -> some View {
-        if game.isSandboxThinking {
+        if game.isSandboxThinking || game.opponentMoveAnimating {
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
                 Text("Your opponent is replying…")
