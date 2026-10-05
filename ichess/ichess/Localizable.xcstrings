@@ -1954,6 +1954,396 @@
           }
         }
       }
+    },
+    "You can checkmate in one move. Look for it!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你一步就能将死对方，找找看！"
+          }
+        }
+      }
+    },
+    "Your opponent threatens to checkmate you next move!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方下一步就能将死你！"
+          }
+        }
+      }
+    },
+    "You have a forced checkmate within %lld moves. Look for it!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你在 %lld 步内有强制杀棋，找找看！"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ is giving check. Capture it, block it, or move your king.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@正在将军。吃掉它、挡住它，或者移开你的王。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ has no defender. Can you capture it?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@没人保护，看看能不能吃。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ attacks your undefended %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方的%1$@在 %2$@，正在攻击你 %4$@ 的%3$@，且没人保护。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ attacks your opponent’s more valuable %@ on %@. Can you win it?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@正在攻击对方 %4$@ 更值钱的%3$@，看看能不能吃。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ attacks your %@ on %@, which is worth more.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@正在攻击你 %4$@ 的%3$@，它比攻击者更值钱。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ is attacked more times than it is defended. Can you win it?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@被攻击的次数比被保护的多，看看能不能吃。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ is attacked more times than it is defended.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@被攻击的次数比被保护的多。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ attacks both your opponent’s %@ on %@ and %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@同时攻击对方 %4$@ 的%3$@和 %6$@ 的%5$@。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ attacks both your %@ on %@ and %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@同时攻击你 %4$@ 的%3$@和 %6$@ 的%5$@。"
+          }
+        }
+      }
+    },
+    "Look for a move where your %@ attacks your opponent’s %@ and %@ at once.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找找看：你的%1$@能不能走到一个同时攻击对方%2$@和%3$@的位置。"
+          }
+        }
+      }
+    },
+    "Watch out: your opponent’s %@ could attack your %@ and %@ at once.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小心：对方的%1$@可能同时攻击你的%2$@和%3$@。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ is pinned to their king by your %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@被你 %4$@ 的%3$@牵制在王前。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ is pinned to your king by your opponent’s %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@被对方 %4$@ 的%3$@牵制在王前，不能随便动。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ pins your opponent’s %@ on %@ to their %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@牵制了对方 %4$@ 的%3$@，它身后是 %6$@ 的%5$@。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ is pinned by your opponent’s %@ on %@. If it moves, your %@ on %@ is attacked.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@被对方 %4$@ 的%3$@牵制：它一动，%6$@ 的%5$@就会被攻击。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ attacks your opponent’s %@ on %@, with their %@ on %@ behind it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@攻击对方 %4$@ 的%3$@，它身后 %6$@ 的%5$@也在线上。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ attacks your %@ on %@, with your %@ on %@ behind it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@攻击你 %4$@ 的%3$@，它身后 %6$@ 的%5$@也有危险。"
+          }
+        }
+      }
+    },
+    "Try not to bring your queen out too early. Develop your knights and bishops first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "别太早出后，先把马和象走出来。"
+          }
+        }
+      }
+    },
+    "Consider castling to keep your king safe.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "考虑王车易位，让王更安全。"
+          }
+        }
+      }
+    },
+    "%lld of your knights or bishops are still at home. Try developing them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有 %lld 个马或象没出动，试着把它们走出来。"
+          }
+        }
+      }
+    },
+    "Fight for the center with a pawn on %@ or %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用兵去争中心，比如 %1$@ 或 %2$@。"
+          }
+        }
+      }
+    },
+    "Your opponent’s %@ on %@ is giving check. Deal with the check first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %2$@ 的%1$@正在将军，先解决将军。"
+          }
+        }
+      }
+    },
+    "Your opponent threatens checkmate with %@!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想用 %@ 将死你！"
+          }
+        }
+      }
+    },
+    "Your opponent wants to capture your %@ with a %@ (%@). It has no defender.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想用%2$@吃你的%1$@（%3$@）——它没人保护。"
+          }
+        }
+      }
+    },
+    "Your opponent wants to capture your %@ with a %@ (%@). You would lose material.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想用%2$@吃你的%1$@（%3$@）——换子你会吃亏。"
+          }
+        }
+      }
+    },
+    "Your opponent wants to capture your %@ with a %@ (%@), but you can capture back.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想用%2$@吃你的%1$@（%3$@），不过你可以吃回来。"
+          }
+        }
+      }
+    },
+    "Your opponent wants to capture your %@ with a %@ (%@).": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想用%2$@吃你的%1$@（%3$@）。"
+          }
+        }
+      }
+    },
+    "Your opponent wants to give check with a %@ (%@).": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想用%1$@将军（%2$@）。"
+          }
+        }
+      }
+    },
+    "Your opponent would like to play %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想走 %@。"
+          }
+        }
+      }
+    },
+    "No immediate threat. Your opponent would probably play %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时没有直接威胁，对方大概会走 %@。"
+          }
+        }
+      }
+    },
+    "What’s my opponent threatening?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方想干什么"
+          }
+        }
+      }
+    },
+    "Checking what your opponent wants…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在看对方想干什么…"
+          }
+        }
+      }
+    },
+    "Your opponent’s threat": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方的威胁"
+          }
+        }
+      }
+    },
+    "Nothing urgent stands out right now.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时没有特别要留意的。"
+          }
+        }
+      }
+    },
+    "Auto key-point reminders": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动提醒重点"
+          }
+        }
+      }
+    },
+    "Their threat": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方威胁"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

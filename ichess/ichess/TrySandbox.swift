@@ -29,7 +29,7 @@ struct SandboxState {
 
 /// 棋盘上的箭头：更好的走法、提示、试走里对方的应对。
 struct BoardArrow: Equatable, Identifiable {
-    enum Style { case better, hint, reply, opponent }
+    enum Style { case better, hint, reply, opponent, threat }
 
     let from: Square
     let to: Square

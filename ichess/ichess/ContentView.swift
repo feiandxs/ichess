@@ -317,6 +317,7 @@ struct ContentView: View {
                 Toggle("Mark pieces that can be captured for free", isOn: $game.showsSafety)
                 Toggle("Mark risky squares for the selected piece", isOn: $game.showsRiskyMoves)
                 Toggle("Review each move after you play", isOn: $game.showsFeedback)
+                Toggle("Auto key-point reminders", isOn: $game.showsKeyPoints)
             }
             .disabled(!game.activeMode.allowsAids)
         } label: {

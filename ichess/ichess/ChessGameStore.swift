@@ -23,6 +23,8 @@ final class ChessGameStore: ObservableObject {
         didSet {
             clearHint()
             refreshSafety()
+            invalidateThreat()
+            refreshKeyPoint()
         }
     }
     @Published var selected: Square? {
@@ -57,8 +59,10 @@ final class ChessGameStore: ObservableObject {
             if !activeMode.allowsAids {
                 exitSandbox()
                 cancelFeedback()
+                invalidateThreat()
             }
             refreshSafety()
+            refreshKeyPoint()
         }
     }
     /// 标出会被白吃的子。
@@ -66,6 +70,14 @@ final class ChessGameStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(showsSafety, forKey: Self.safetyKey)
             refreshSafety()
+            refreshKeyPoint()
+        }
+    }
+    /// 轮到玩家时自动在教练区给一条重点提醒（练习模式），默认开启。
+    @Published var showsKeyPoints: Bool {
+        didSet {
+            UserDefaults.standard.set(showsKeyPoints, forKey: Self.keyPointsKey)
+            refreshKeyPoint()
         }
     }
     /// 选中棋子时标出危险落点，默认关闭。
@@ -108,7 +120,11 @@ final class ChessGameStore: ObservableObject {
     private var feedbackPly = 0
     /// 试走沙盒；非 nil 表示正在试走，棋盘显示的是沙盒局面。
     @Published private(set) var sandbox: SandboxState? {
-        didSet { refreshSafety() }
+        didSet {
+            refreshSafety()
+            invalidateThreat()
+            refreshKeyPoint()
+        }
     }
     @Published private(set) var isSandboxThinking = false
     @Published private(set) var sandboxError: String?
@@ -116,6 +132,12 @@ final class ChessGameStore: ObservableObject {
     @Published private(set) var dangers: [ThreatAnalyzer.Danger] = []
     /// 选中棋子后，走过去会亏子的目标格。
     @Published private(set) var riskyTargets: [Square: ThreatAnalyzer.MoveRisk] = [:]
+    /// 轮到玩家时最该留意的一条（威胁或机会），不含该走哪一步。
+    @Published private(set) var keyPoint: CoachFinding?
+    /// 「对方想干什么」的结果；局面一变就清除。
+    @Published private(set) var threat: OpponentThreat?
+    @Published private(set) var isThreatThinking = false
+    @Published private(set) var threatError: String?
 
     private static let difficultyKey = "nookchess.difficulty"
     private static let modeKey = "nookchess.mode"
@@ -123,6 +145,7 @@ final class ChessGameStore: ObservableObject {
     private static let riskyMovesKey = "nookchess.showsRiskyMoves"
     private static let feedbackKey = "nookchess.showsFeedback"
     private static let winChancesKey = "nookchess.showsWinChances"
+    private static let keyPointsKey = "nookchess.showsKeyPoints"
 
     let playerColor: Piece.Color = .white
     /// Restored games should not replay the last move animation.
@@ -142,9 +165,14 @@ final class ChessGameStore: ObservableObject {
     private var sandboxTask: Task<Void, Never>?
     /// 沙盒每次变动都 +1，丢弃过期的引擎结果。
     private var sandboxRevision = 0
+    private var threatTask: Task<Void, Never>?
+    /// 显示的局面每变一次就 +1，丢弃过期的「对方想干什么」结果。
+    private var threatRevision = 0
     private let analyses = AnalysisCache()
     /// 试走里对方应对的搜索时长（毫秒），满力。
     private static let sandboxMovetime = 800
+    /// 「对方想干什么」的搜索时长（毫秒），要短，和对手走子共用同一个引擎。
+    private static let threatMovetime = 400
     private var hasRatedThisGame = false
     private var positionRevision = 0
 
@@ -172,6 +200,12 @@ final class ChessGameStore: ObservableObject {
     }
 
     var arrows: [BoardArrow] {
+        let base = baseArrows
+        guard let threat else { return base }
+        return base + [BoardArrow(from: threat.from, to: threat.to, style: .threat)]
+    }
+
+    private var baseArrows: [BoardArrow] {
         if let sandbox {
             guard let ply = sandbox.plies.last, ply.isReply else { return [] }
             return [BoardArrow(from: ply.played.from, to: ply.played.to, style: .reply)]
@@ -270,6 +304,7 @@ final class ChessGameStore: ObservableObject {
         showsRiskyMoves = UserDefaults.standard.bool(forKey: Self.riskyMovesKey)
         showsFeedback = UserDefaults.standard.object(forKey: Self.feedbackKey) as? Bool ?? true
         showsWinChances = UserDefaults.standard.bool(forKey: Self.winChancesKey)
+        showsKeyPoints = UserDefaults.standard.object(forKey: Self.keyPointsKey) as? Bool ?? true
         if let raw = UserDefaults.standard.string(forKey: Self.difficultyKey),
            let difficulty = Difficulty(rawValue: raw) {
             selectedDifficulty = difficulty
@@ -384,6 +419,7 @@ final class ChessGameStore: ObservableObject {
     /// 连按逐级加深：先标出要动的子，再标出目标格，最后画出完整走法和后续变例。
     func showHint() {
         guard canHint else { return }
+        clearThreat()
         if hint != nil {
             hintLevel += 1
             return
@@ -568,6 +604,8 @@ final class ChessGameStore: ObservableObject {
         if case let .promotion(pending) = next.state {
             final = next.completePromotion(of: pending, to: move.promotion ?? .queen)
         }
+        // 重点提醒等对手的走子动画播完再出现。
+        markOpponentAnimating()
         board = next
         moves.append(MoveRecord(move: final, fen: next.position.fen))
         shouldAnimateLastMove = true
@@ -820,6 +858,8 @@ final class ChessGameStore: ObservableObject {
     private func analyze(_ fen: String, background: Bool = false) async throws -> EngineAnalysis {
         let analysis = try await analyses.analysis(fen: fen, background: background)
         recordEval(fen: fen, analysis: analysis)
+        // 轮到玩家的局面分析好了，杀棋信息可能补充重点提醒。
+        refreshKeyPoint()
         return analysis
     }
 
@@ -867,6 +907,96 @@ final class ChessGameStore: ObservableObject {
                 }
             }
         }
+    }
+
+    // MARK: - 重点提醒与「对方想干什么」
+
+    /// 重点提醒能显示：练习模式、轮到玩家、对手没在想 / 没在走子动画中。
+    var keyPointVisible: Bool {
+        activeMode.allowsAids && showsKeyPoints && hasChosenDifficulty && !isGameOver && pendingPromotion == nil
+            && shownBoard.position.sideToMove == playerColor
+            && !isEngineThinking && !isSandboxThinking && !opponentMoveAnimating
+    }
+
+    var keyPointText: String? {
+        keyPoint.map { CoachExplainer.text(for: $0, viewer: playerColor) }
+    }
+
+    /// 基于当前显示的局面（试走时是沙盒局面）重新挑一条。杀棋信息取自已缓存的分析。
+    private func refreshKeyPoint() {
+        guard activeMode.allowsAids, showsKeyPoints, !isGameOver else {
+            keyPoint = nil
+            return
+        }
+        let shown = shownBoard.position
+        guard shown.sideToMove == playerColor else {
+            keyPoint = nil
+            return
+        }
+        let analysis = analyses.peek(shown.fen)
+        // 安全标记开着时，会被白吃的子已经在底部那行说了，这里不重复。
+        let covered = showsSafety
+        let point = CoachExplainer.keyPoint(position: shown, viewer: playerColor, analysis: analysis) {
+            covered && $0.side != self.playerColor && $0.victim != nil
+        }
+        if point != keyPoint { keyPoint = point }
+    }
+
+    var canShowThreat: Bool {
+        activeMode.allowsAids && hasChosenDifficulty && !isGameOver && pendingPromotion == nil
+            && shownBoard.position.sideToMove == playerColor
+            && !isEngineThinking && !isSandboxThinking && !opponentMoveAnimating
+    }
+
+    /// 对方想干什么：把对方当成轮到它走，问引擎它的最佳着法，红箭头 + 一句解释。再按一次收起。
+    func showThreat() {
+        if threat != nil || isThreatThinking {
+            clearThreat()
+            return
+        }
+        guard canShowThreat else { return }
+        let shown = shownBoard
+        threatError = nil
+        // 正被将军：威胁就是将军本身，不用搜索。
+        if let check = CoachExplainer.checkThreat(in: shown.position, viewer: playerColor) {
+            threat = check
+            return
+        }
+        guard let nullBoard = CoachExplainer.nullMove(shown) else { return }
+        let revision = threatRevision
+        let viewer = playerColor
+        isThreatThinking = true
+        threatTask = Task { [weak self] in
+            do {
+                let analysis = try await StockfishHintEngine.shared.analyze(fen: nullBoard.position.fen, movetime: Self.threatMovetime)
+                guard let self, !Task.isCancelled, threatRevision == revision else { return }
+                isThreatThinking = false
+                guard let result = CoachExplainer.threat(board: nullBoard, analysis: analysis, viewer: viewer) else {
+                    throw HintError.unavailable
+                }
+                threat = result
+            } catch is CancellationError {
+            } catch {
+                guard let self, threatRevision == revision else { return }
+                isThreatThinking = false
+                threatError = error.localizedDescription
+            }
+        }
+    }
+
+    /// 收起结果；正在搜索的会被取消。
+    func clearThreat() {
+        invalidateThreat()
+    }
+
+    /// 局面变了：作废结果和还在跑的搜索。
+    private func invalidateThreat() {
+        threatRevision += 1
+        threatTask?.cancel()
+        threatTask = nil
+        if threat != nil { threat = nil }
+        if isThreatThinking { isThreatThinking = false }
+        if threatError != nil { threatError = nil }
     }
 
     // MARK: - 试走
@@ -1294,6 +1424,22 @@ extension ChessGameStore {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [self] in
                 playSandboxMove()
             }
+        case "keypoint":
+            // 白方的马和 g2 兵都没人保护（黑后在 g5）。
+            debugSetPosition("r1b1kbnr/pppp1ppp/8/4N1q1/2BnP3/8/PPPP1PPP/RNBQK2R w KQkq - 3 5")
+        case "keypoint-opp":
+            // 1.Nf3 e5：黑方 e5 的兵没人保护。
+            debugSetPosition("rnbqkbnr/pppp1ppp/8/4p3/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 0 2")
+        case "keypoint-mate":
+            debugSetPosition("r5k1/5ppp/8/8/8/8/5PPP/6K1 w - - 0 1")
+        case "threat", "threat-mate", "threat-check":
+            let fens = [
+                "threat": "r1b1kbnr/pppp1ppp/8/4N1q1/2BnP3/8/PPPP1PPP/RNBQK2R w KQkq - 3 5",
+                "threat-mate": "r5k1/5ppp/8/8/8/8/5PPP/6K1 w - - 0 1",
+                "threat-check": "rnbqk1nr/pppp1ppp/8/4p3/1b1P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 3",
+            ]
+            debugSetPosition(fens[preset]!)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [self] in showThreat() }
         case "probe":
             Task { await runFeedbackProbe() }
         case "over-loss", "over-loss-live":
@@ -1316,6 +1462,16 @@ extension ChessGameStore {
         default:
             break
         }
+    }
+
+    /// 直接放一个指定局面（白方走），没有着法记录。
+    private func debugSetPosition(_ fen: String) {
+        guard let position = Position(fen: fen) else { return }
+        board = Board(position: position)
+        moves = []
+        startEval = nil
+        lastPlayed = nil
+        selected = nil
     }
 
     // MARK: 调试数据：脚本化的对局 + 手写评估（白方视角）
