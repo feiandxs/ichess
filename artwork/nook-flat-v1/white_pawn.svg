@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — white pawn</title>
+  <g fill="#F7F8F6" stroke="#425761" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M26 39H38L37 47L43 58H21L27 47Z"/><path d="M23 38H41V43H23Z"/><circle cx="32" cy="27" r="10"/><path d="M18 58H46L51 65V68H13V65Z"/>
+  </g>
+</svg>

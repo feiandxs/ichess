@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — black pawn</title>
+  <g transform="translate(0 -3)" fill="#607783" stroke="#213640" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M25 38H39Q37 47 45 55H19Q27 47 25 38Z"/><rect x="22" y="36" width="20" height="7" rx="3.5"/><circle cx="32" cy="25" r="12"/><path d="M19 55H45Q48 55 50 59L52 62Q53 65 49 65H15Q11 65 12 62L14 59Q16 55 19 55Z"/>
+  </g>
+</svg>

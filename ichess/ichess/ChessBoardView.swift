@@ -199,6 +199,7 @@ struct PieceSprite: View {
     var body: some View {
         let set = pieceSets.selected
         let kind = piece.kind.assetKind
+        let centered = set.id == "nook_flat"
         let ratio = set.isSculpt ? kind.heightRatio : 0.92
         let height = squareSize * 0.90 * ratio
         let flip = kind == .knight && facing.file == .g
@@ -212,8 +213,8 @@ struct PieceSprite: View {
         .frame(height: height)
         .scaleEffect(x: flip ? -1 : 1, y: 1)
         .shadow(color: .black.opacity(set.isSculpt ? 0.35 : 0.18), radius: set.isSculpt ? 3 : 1, y: 1)
-        .padding(.bottom, squareSize * 0.03)
-        .frame(width: squareSize, height: squareSize, alignment: .bottom)
+        .padding(.bottom, centered ? 0 : squareSize * 0.03)
+        .frame(width: squareSize, height: squareSize, alignment: centered ? .center : .bottom)
     }
 }
 

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="288" viewBox="0 0 64 72">
+  <title>Nook Flat — white bishop</title>
+  <g transform="translate(0 -2)" fill="#F7F8F6" stroke="#425761" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M23 32H41L40 42Q40 49 47 55H17Q24 49 24 42Z"/><path d="M29 11Q32 8 35 11C39 15 46 20 46 26C46 33 40 37 32 37C24 37 18 33 18 26C18 20 25 15 29 11Z"/><path d="M38 18L30 27" fill="none" stroke-width="3.6"/><path d="M23 40H41" fill="none"/><path d="M19 55H45Q48 55 50 59L52 62Q53 65 49 65H15Q11 65 12 62L14 59Q16 55 19 55Z"/>
+  </g>
+</svg>

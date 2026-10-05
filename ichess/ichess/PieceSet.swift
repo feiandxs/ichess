@@ -73,8 +73,8 @@ final class PieceSetStore: ObservableObject {
             return catalog
         }
         return Catalog(
-            defaultID: "neo",
-            sets: [PieceSet(id: "neo", name: "Neo", source: "Chess.com", style: "icon")]
+            defaultID: "nook_flat",
+            sets: [PieceSet(id: "nook_flat", name: "Nook Flat", source: "自绘 SVG", style: "icon")]
         )
     }
 }

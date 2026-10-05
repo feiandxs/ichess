@@ -44,3 +44,9 @@ Stockfish 对手使用内置限强参数，最大深度 15、搜索时间 1000 m
 - NNUE 文件来源：[Stockfish 测试服务器](https://tests.stockfishchess.org/)，版本与 SHA-256 固定在下载脚本中。
 
 分发包含 Stockfish 的构建时，须遵守其 GPL-3.0 许可证；包装库的 MIT 许可证不替代引擎许可证。
+
+## 棋子素材
+
+棋子库提供原创 Nook Flat（默认）、Clay 3D，以及 Spatial、RhosGFX、Celtic、Chessnut、Fantasy 共 7 套。Nook Flat 的可编辑矢量源文件保存在 `artwork/nook-flat/`。第三方素材的作者、许可与 SVG 转 PNG 的修改说明位于随应用打包的 `PieceArtworkLicenses.txt`。
+
+已移除未取得独立再分发授权的 Chess.com 素材，以及带非商业限制、授权不明或尚未完成许可处理的 Lichess 素材。Geometric 实际由 Cburnett 改色生成，不作为原创保留。导入脚本仅允许已核实的保留款式。
