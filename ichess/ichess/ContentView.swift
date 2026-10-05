@@ -377,6 +377,8 @@ struct ContentView: View {
         Button(action: action) {
             chipLabel(title, systemImage: systemImage, iconOnly: iconOnly, palette: palette)
         }
+        // macOS 默认按钮样式会在胶囊外再加一层灰底。
+        .buttonStyle(.plain)
         .foregroundStyle(palette.chipText)
     }
 
