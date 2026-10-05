@@ -9,33 +9,42 @@
 import ChessKit
 import SwiftUI
 
-/// 从对局结束卡片弹出的复盘（自带导航栏和「完成」）。
-struct ReviewSheet: View {
-    let recordID: String
-    var initialPly: Int?
+/// 整页顶栏：左上角返回按钮 + 居中标题。复盘 / 对局记录都占满整个窗口，不用弹层。
+struct PageHeader: View {
+    let title: LocalizedStringKey
+    let onBack: () -> Void
     @EnvironmentObject private var theme: ThemeStore
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            ReviewView(recordID: recordID, initialPly: initialPly)
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { dismiss() }
-                    }
+        let palette = theme.palette
+        ZStack {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(palette.primaryText)
+            HStack {
+                Button(action: onBack) {
+                    Label("Go back", systemImage: "chevron.left")
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(palette.chipFill)
+                        .clipShape(Capsule())
                 }
+                .buttonStyle(.plain)
+                .foregroundStyle(palette.chipText)
+                .keyboardShortcut(.cancelAction)
+                Spacer()
+            }
         }
-        .preferredColorScheme(theme.isDark ? .dark : .light)
-        .presentationSizing(.page)
-        #if os(macOS)
-        .frame(minWidth: 760, minHeight: 640)
-        #endif
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
 }
 
 struct ReviewView: View {
     let recordID: String
     var initialPly: Int?
+    let onBack: () -> Void
 
     @ObservedObject private var archive = GameArchive.shared
     @ObservedObject private var analyzer = PostGameAnalyzer.shared
@@ -45,19 +54,18 @@ struct ReviewView: View {
 
     var body: some View {
         let palette = theme.palette
-        Group {
-            if let record = archive.record(recordID) {
-                content(record, palette: palette)
-            } else {
-                ContentUnavailableView("This game is no longer available.", systemImage: "tray")
+        VStack(spacing: 0) {
+            PageHeader(title: "Review", onBack: onBack)
+            Group {
+                if let record = archive.record(recordID) {
+                    content(record, palette: palette)
+                } else {
+                    ContentUnavailableView("This game is no longer available.", systemImage: "tray")
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(palette.canvas.ignoresSafeArea())
-        .navigationTitle(Text("Review"))
-        #if !os(macOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
         .onAppear(perform: setup)
     }
 
@@ -81,12 +89,17 @@ struct ReviewView: View {
         let report = GameAnalysis.report(startEval: record.startEval, moves: record.moves)
         let current = min(ply, record.moves.count)
         return GeometryReader { geo in
-            if geo.size.width >= 720 {
-                let side = max(240, min(geo.size.height - 100, geo.size.width * 0.5))
+            if geo.size.width >= 700 {
+                // 宽屏：左列棋盘 + 控制条 + 着法列表，右列各种卡片，两列各自滚动；棋盘随窗口放大。
+                let pad: CGFloat = 16
+                let controlsHeight: CGFloat = 48
+                let listMin: CGFloat = geo.size.height > 640 ? 150 : 90
+                let side = max(160, min(geo.size.width * 0.55 - pad, geo.size.height - pad * 2 - controlsHeight - listMin))
                 HStack(alignment: .top, spacing: 20) {
                     VStack(spacing: 12) {
                         board(record, ply: current, side: side)
                         controls(record, palette: palette)
+                        moveList(record, report, palette: palette)
                     }
                     .frame(width: side)
                     ScrollView {
@@ -95,17 +108,17 @@ struct ReviewView: View {
                             detail(record, report, ply: current, palette: palette)
                             graph(record, report, palette: palette)
                             keyMistakes(report, palette: palette)
-                            moveList(record, report, palette: palette)
                         }
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 4)
                     }
                 }
-                .padding(16)
+                .padding(pad)
             } else {
                 let side = max(200, min(geo.size.width - 32, geo.size.height * 0.45))
                 VStack(spacing: 10) {
                     board(record, ply: current, side: side)
                     controls(record, palette: palette)
+                        .padding(.horizontal, 16)
                     moveStrip(record, report, palette: palette)
                     ScrollView {
                         VStack(alignment: .leading, spacing: 12) {
@@ -154,7 +167,6 @@ struct ReviewView: View {
                 .keyboardShortcut(.rightArrow, modifiers: [])
             navButton("forward.end.fill", label: "Last move", disabled: ply >= last, palette: palette) { ply = last }
         }
-        .padding(.horizontal, 16)
     }
 
     private func navButton(
@@ -233,26 +245,33 @@ struct ReviewView: View {
         }
     }
 
-    /// 宽屏：完整的竖排着法列表。
+    /// 宽屏：完整的竖排着法列表，占满左列剩下的高度，自己滚动，选中的步自动滚进视野。
     private func moveList(_ record: GameRecord, _ report: GameAnalysis.Report, palette: BoardPalette) -> some View {
-        card(palette) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Moves")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(palette.secondaryText)
-                LazyVStack(alignment: .leading, spacing: 0) {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(0..<(record.moves.count + 1) / 2, id: \.self) { row in
                         HStack(spacing: 4) {
                             numberLabel(row + 1, palette: palette).frame(width: 34, alignment: .trailing)
-                            chip(record, report, index: row * 2, palette: palette).frame(width: 120, alignment: .leading)
+                            chip(record, report, index: row * 2, palette: palette).frame(maxWidth: .infinity, alignment: .leading)
                             if row * 2 + 1 < record.moves.count {
-                                chip(record, report, index: row * 2 + 1, palette: palette).frame(width: 120, alignment: .leading)
+                                chip(record, report, index: row * 2 + 1, palette: palette).frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                Spacer(minLength: 0).frame(maxWidth: .infinity)
                             }
-                            Spacer(minLength: 0)
                         }
+                        .id(row)
                     }
                 }
+                .padding(8)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(palette.cardFill)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .onChange(of: ply) { _, new in
+                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(max(0, new - 1) / 2, anchor: .center) }
+            }
+            .onAppear { proxy.scrollTo(max(0, ply - 1) / 2, anchor: .center) }
         }
     }
 

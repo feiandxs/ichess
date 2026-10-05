@@ -1448,7 +1448,7 @@ extension ChessGameStore {
             debugFinish(Self.debugWin, resign: false, withEvals: true)
         case "over-draw":
             debugFinish(Self.debugStalemate, resign: false, withEvals: true)
-        case "history", "review":
+        case "history", "review", "review-history":
             debugSeedArchive()
         case "wc-mid":
             // 对局进行中的状态：开局几步，带评估，便于看胜率条 / 趋势图。

@@ -17,15 +17,26 @@ final class ThemeStore: ObservableObject {
         didSet { UserDefaults.standard.set(showsCoordinates, forKey: Self.coordinatesKey) }
     }
 
+    /// 坐标画在棋盘外的边槽里，还是棋盘内的角落。
+    @Published var coordinatePlacement: CoordinatePlacement {
+        didSet { UserDefaults.standard.set(coordinatePlacement.rawValue, forKey: Self.placementKey) }
+    }
+
     /// 对手走子动画的速度；自己走的子始终保持利落。
     @Published var moveSpeed: MoveSpeed {
         didSet { UserDefaults.standard.set(moveSpeed.rawValue, forKey: Self.moveSpeedKey) }
+    }
+
+    /// 棋盘外边槽占整个棋盘区域边长的比例；不显示坐标或放在棋盘内时为 0。
+    var gutterRatio: CGFloat {
+        showsCoordinates && coordinatePlacement == .outside ? BoardGutter.ratio : 0
     }
 
     var palette: BoardPalette { BoardPalette(isDark: isDark) }
 
     private static let key = "boardIsDark"
     private static let coordinatesKey = "boardShowsCoordinates"
+    private static let placementKey = "nookchess.coordinatePlacement"
     private static let moveSpeedKey = "nookchess.moveSpeed"
 
     init() {
@@ -36,10 +47,24 @@ final class ThemeStore: ObservableObject {
         }
         moveSpeed = UserDefaults.standard.string(forKey: Self.moveSpeedKey).flatMap(MoveSpeed.init(rawValue:)) ?? .normal
         showsCoordinates = UserDefaults.standard.object(forKey: Self.coordinatesKey) as? Bool ?? true
+        coordinatePlacement = UserDefaults.standard.string(forKey: Self.placementKey).flatMap(CoordinatePlacement.init(rawValue:)) ?? .outside
     }
 
     func toggle() {
         isDark.toggle()
+    }
+}
+
+enum CoordinatePlacement: String, CaseIterable, Identifiable {
+    case outside, inside
+
+    var id: String { rawValue }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .outside: "Outside board"
+        case .inside: "Inside board"
+        }
     }
 }
 

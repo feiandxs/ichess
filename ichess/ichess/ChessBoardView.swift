@@ -42,64 +42,8 @@ struct ChessBoardView: View {
         let palette = theme.palette
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
-            let square = side / 8
-
-            ZStack {
-                Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-                    ForEach(0..<8, id: \.self) { row in
-                        GridRow {
-                            ForEach(0..<8, id: \.self) { col in
-                                squareCell(row: row, col: col, size: square, palette: palette)
-                            }
-                        }
-                    }
-                }
-
-                if theme.showsCoordinates {
-                    BoardCoordinatesView(squareSize: square, palette: palette)
-                }
-
-                // 箭头画在棋子之上、飞行动画之下。
-                // 对手的动画播完再出现应对 / 上一步箭头。
-                ForEach(game.arrows.filter { flight == nil || ($0.style != .reply && $0.style != .opponent) }) { arrow in
-                    BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
-                        .allowsHitTesting(false)
-                        .transition(.opacity)
-                }
-
-                if game.isTrying {
-                    // 试走中整盘淡淡染色，一眼能和真实对局区分。
-                    palette.sandbox.opacity(0.08)
-                        .allowsHitTesting(false)
-                }
-
-                if let flight {
-                    if let captured = flight.captured {
-                        PieceSprite(piece: captured, facing: captured.square, squareSize: square)
-                            .position(center(of: captured.square, squareSize: square))
-                            .opacity(1 - captureFade)
-                            .scaleEffect(1 - 0.35 * captureFade)
-                            .allowsHitTesting(false)
-                    }
-
-                    PieceSprite(piece: flight.piece, facing: flight.from, squareSize: square)
-                        .scaleEffect(reduceMotion ? 1 : flightScale)
-                        .opacity(reduceMotion ? flightProgress : 1)
-                        .position(flightPosition(squareSize: square))
-                        .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
-                        .zIndex(2)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(width: side, height: side, alignment: .topLeading)
-            .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
-                    .strokeBorder(
-                        game.isTrying ? palette.sandbox : palette.boardBorder,
-                        lineWidth: game.isTrying ? 4 : 1.5
-                    )
-                    .allowsHitTesting(false)
+            BoardFrame(side: side) { boardSide in
+                boardContent(side: boardSide, palette: palette)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .allowsHitTesting(!game.isEngineThinking)
@@ -119,6 +63,67 @@ struct ChessBoardView: View {
             Button("Rook") { game.completePromotion(to: .rook) }
             Button("Bishop") { game.completePromotion(to: .bishop) }
             Button("Knight") { game.completePromotion(to: .knight) }
+        }
+    }
+
+    private func boardContent(side: CGFloat, palette: BoardPalette) -> some View {
+        let square = side / 8
+        return ZStack {
+            Grid(horizontalSpacing: 0, verticalSpacing: 0) {
+                ForEach(0..<8, id: \.self) { row in
+                    GridRow {
+                        ForEach(0..<8, id: \.self) { col in
+                            squareCell(row: row, col: col, size: square, palette: palette)
+                        }
+                    }
+                }
+            }
+
+            if theme.showsCoordinates, theme.coordinatePlacement == .inside {
+                BoardCoordinatesView(squareSize: square, palette: palette)
+            }
+
+            // 箭头画在棋子之上、飞行动画之下。
+            // 对手的动画播完再出现应对 / 上一步箭头。
+            ForEach(game.arrows.filter { flight == nil || ($0.style != .reply && $0.style != .opponent) }) { arrow in
+                BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+
+            if game.isTrying {
+                // 试走中整盘淡淡染色，一眼能和真实对局区分。
+                palette.sandbox.opacity(0.08)
+                    .allowsHitTesting(false)
+            }
+
+            if let flight {
+                if let captured = flight.captured {
+                    PieceSprite(piece: captured, facing: captured.square, squareSize: square)
+                        .position(center(of: captured.square, squareSize: square))
+                        .opacity(1 - captureFade)
+                        .scaleEffect(1 - 0.35 * captureFade)
+                        .allowsHitTesting(false)
+                }
+
+                PieceSprite(piece: flight.piece, facing: flight.from, squareSize: square)
+                    .scaleEffect(reduceMotion ? 1 : flightScale)
+                    .opacity(reduceMotion ? flightProgress : 1)
+                    .position(flightPosition(squareSize: square))
+                    .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
+                    .zIndex(2)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(width: side, height: side, alignment: .topLeading)
+        .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
+                .strokeBorder(
+                    game.isTrying ? palette.sandbox : palette.boardBorder,
+                    lineWidth: game.isTrying ? 4 : 1.5
+                )
+                .allowsHitTesting(false)
         }
     }
 
@@ -249,8 +254,63 @@ struct ChessBoardView: View {
     }
 }
 
-/// 棋盘边缘坐标：左列格子左上角是数字，底行格子右下角是字母（玩家执白，a1 在左下）。
-/// 画在所有格子之上，不拦截点击。
+/// 棋盘外坐标边槽的尺寸：槽宽 = 格子边长 × ratio，棋盘随之缩小一点，整体仍是 side × side。
+enum BoardGutter {
+    static let ratio: CGFloat = 0.36
+
+    static func inset(side: CGFloat, ratio: CGFloat) -> CGFloat {
+        side * ratio / (8 + ratio)
+    }
+}
+
+/// 给棋盘套上坐标边槽：坐标在棋盘外时，左侧画 1–8、下方画 a–h，对齐格子中心；
+/// 棋盘本体（边长 boardSide）由 content 画在右上。坐标在棋盘内或关闭时就是 content 本身。
+struct BoardFrame<Content: View>: View {
+    @EnvironmentObject private var theme: ThemeStore
+    let side: CGFloat
+    @ViewBuilder let content: (CGFloat) -> Content
+
+    var body: some View {
+        let gutter = BoardGutter.inset(side: side, ratio: theme.gutterRatio)
+        let boardSide = side - gutter
+        let square = boardSide / 8
+        let color = theme.palette.secondaryText
+        let font = Font.system(size: max(9, square * 0.26), weight: .semibold, design: .rounded)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
+                if gutter > 0 {
+                    VStack(spacing: 0) {
+                        ForEach(0..<8, id: \.self) { row in
+                            Text(verbatim: "\(8 - row)")
+                                .font(font)
+                                .foregroundStyle(color)
+                                .frame(width: gutter, height: square)
+                        }
+                    }
+                    .accessibilityHidden(true)
+                }
+                content(boardSide)
+                    .frame(width: boardSide, height: boardSide)
+            }
+            if gutter > 0 {
+                HStack(spacing: 0) {
+                    Color.clear.frame(width: gutter, height: gutter)
+                    ForEach(0..<8, id: \.self) { col in
+                        Text(verbatim: String(UnicodeScalar(UInt8(97 + col))))
+                            .font(font)
+                            .foregroundStyle(color)
+                            .frame(width: square, height: gutter)
+                    }
+                }
+                .accessibilityHidden(true)
+            }
+        }
+        .frame(width: side, height: side, alignment: .topLeading)
+    }
+}
+
+/// 棋盘内坐标：左列格子左上角是数字，底行格子右下角是字母（玩家执白，a1 在左下）。
+/// 字号小、贴角，尽量不压到棋子；画在所有格子之上，不拦截点击。
 struct BoardCoordinatesView: View {
     let squareSize: CGFloat
     let palette: BoardPalette
@@ -271,16 +331,16 @@ struct BoardCoordinatesView: View {
         .accessibilityHidden(true)
     }
 
-    /// 底色取格子本色：空格上看不出来，压在大棋子上时仍能托住字。
+    /// 底色取格子本色：空格上看不出来，压在棋子上时仍能托住字。
     private func label(_ text: String, onLight: Bool, alignment: Alignment) -> some View {
-        let inset = squareSize * 0.11
+        let inset = squareSize * 0.04
         return Text(verbatim: text)
-            .font(.system(size: max(9, squareSize * 0.17), weight: .bold, design: .rounded))
+            .font(.system(size: max(8, squareSize * 0.145), weight: .bold, design: .rounded))
             .foregroundStyle(palette.coordinate(onLight: onLight))
-            .padding(.horizontal, squareSize * 0.025)
+            .padding(.horizontal, squareSize * 0.02)
             .background(
                 (onLight ? palette.lightSquare : palette.darkSquare).opacity(0.85),
-                in: RoundedRectangle(cornerRadius: squareSize * 0.05, style: .continuous)
+                in: RoundedRectangle(cornerRadius: squareSize * 0.04, style: .continuous)
             )
             .padding(inset)
             .frame(width: squareSize, height: squareSize, alignment: alignment)

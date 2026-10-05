@@ -39,16 +39,20 @@ extension GameRecord {
     var playerMoveCount: Int { (moves.count + 1) / 2 }
 }
 
+/// 对局记录：占满整个窗口的整页，点按一局进入复盘（由 ContentView 切页）。
 struct GameHistoryView: View {
+    let onOpen: (String) -> Void
+    let onBack: () -> Void
+
     @ObservedObject private var archive = GameArchive.shared
     @ObservedObject private var analyzer = PostGameAnalyzer.shared
     @EnvironmentObject private var theme: ThemeStore
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
     var body: some View {
         let palette = theme.palette
-        NavigationStack {
+        VStack(spacing: 0) {
+            PageHeader(title: "Game history", onBack: onBack)
             Group {
                 if archive.records.isEmpty {
                     ContentUnavailableView {
@@ -59,9 +63,13 @@ struct GameHistoryView: View {
                 } else {
                     List {
                         ForEach(archive.records) { record in
-                            NavigationLink(value: record.id) {
+                            Button {
+                                onOpen(record.id)
+                            } label: {
                                 row(record, palette: palette)
+                                    .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                             .listRowBackground(palette.cardFill)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
@@ -80,26 +88,12 @@ struct GameHistoryView: View {
                         }
                     }
                     .scrollContentBackground(.hidden)
+                    .frame(maxWidth: 720)
                 }
             }
-            .background(palette.canvas.ignoresSafeArea())
-            .navigationTitle(Text("Game history"))
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .navigationDestination(for: String.self) { id in
-                ReviewView(recordID: id)
-            }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .preferredColorScheme(theme.isDark ? .dark : .light)
-        #if os(macOS)
-        .frame(minWidth: 520, minHeight: 600)
-        #endif
+        .background(palette.canvas.ignoresSafeArea())
     }
 
     private func row(_ record: GameRecord, palette: BoardPalette) -> some View {
@@ -141,6 +135,9 @@ struct GameHistoryView: View {
             } else if analyzer.isAnalyzing(record.id) {
                 ProgressView().controlSize(.small)
             }
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(palette.secondaryText)
         }
         .padding(.vertical, 4)
     }

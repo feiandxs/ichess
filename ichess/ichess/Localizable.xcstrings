@@ -2344,6 +2344,46 @@
           }
         }
       }
+    },
+    "Go back": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "Coordinate position": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标位置"
+          }
+        }
+      }
+    },
+    "Outside board": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "棋盘外"
+          }
+        }
+      }
+    },
+    "Inside board": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "棋盘内"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

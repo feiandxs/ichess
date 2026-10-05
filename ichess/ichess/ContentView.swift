@@ -14,8 +14,8 @@ struct ContentView: View {
     @State private var showGameOver = false
     @State private var showResignConfirmation = false
     @State private var showDifficulty = false
-    @State private var showHistory = false
-    @State private var reviewTarget: ReviewTarget?
+    /// 整页覆盖主界面的页面：对局记录 / 复盘（不用弹层，随窗口大小铺满）。
+    @State private var page: AppPage?
 
     var body: some View {
         let palette = theme.palette
@@ -114,7 +114,7 @@ struct ContentView: View {
                 .padding(.vertical, 8)
 
                 // 开了「显示胜率」时棋盘旁带一条胜率条：宽屏竖放在右侧，窄屏横放在棋盘下方。
-                BoardBarLayout {
+                BoardBarLayout(gutterRatio: theme.gutterRatio) {
                     ChessBoardView()
                     if game.showsWinChances {
                         WinBarView(value: game.winLatest?.value, isCurrent: game.winLatest?.isCurrent ?? true)
@@ -150,7 +150,7 @@ struct ContentView: View {
                     onReview: {
                         guard let id = game.archiveID else { return }
                         withAnimation(.easeOut(duration: 0.2)) { showGameOver = false }
-                        reviewTarget = ReviewTarget(id: id)
+                        show(.review(ReviewTarget(id: id), fromHistory: false))
                     },
                     onRematch: {
                         withAnimation(.easeOut(duration: 0.2)) { showGameOver = false }
@@ -161,6 +161,8 @@ struct ContentView: View {
                     }
                 )
             }
+
+            pageOverlay(palette: palette)
         }
         .preferredColorScheme(theme.isDark ? .dark : .light)
         .alert("Computer Move Unavailable", isPresented: Binding(
@@ -202,6 +204,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showPieceSets) {
             PieceSetSettingsView()
+                .environment(\.locale, language.locale)
         }
         #if DEBUG
         .onAppear {
@@ -213,12 +216,36 @@ struct ContentView: View {
         #endif
         .sheet(isPresented: $showDifficulty) {
             DifficultySettingsView()
+                .environment(\.locale, language.locale)
         }
-        .sheet(isPresented: $showHistory) {
-            GameHistoryView()
-        }
-        .sheet(item: $reviewTarget) { target in
-            ReviewSheet(recordID: target.id, initialPly: target.ply)
+    }
+
+    private func show(_ new: AppPage?) {
+        withAnimation(.easeOut(duration: 0.2)) { page = new }
+    }
+
+    @ViewBuilder
+    private func pageOverlay(palette: BoardPalette) -> some View {
+        switch page {
+        case .history:
+            GameHistoryView(
+                onOpen: { show(.review(ReviewTarget(id: $0), fromHistory: true)) },
+                onBack: { show(nil) }
+            )
+            .background(palette.canvas.ignoresSafeArea())
+            .transition(.opacity)
+        case let .review(target, fromHistory):
+            ReviewView(
+                recordID: target.id,
+                initialPly: target.ply,
+                // 从对局记录点进来的，返回时回到列表。
+                onBack: { show(fromHistory ? .history : nil) }
+            )
+            .id(target.id)
+            .background(palette.canvas.ignoresSafeArea())
+            .transition(.opacity)
+        case nil:
+            EmptyView()
         }
     }
 
@@ -228,11 +255,11 @@ struct ContentView: View {
         let defaults = UserDefaults.standard
         switch defaults.string(forKey: "nookchess.debugPreset") {
         case "history":
-            showHistory = true
-        case "review":
+            page = .history
+        case "review", "review-history":
             let ply = defaults.string(forKey: "nookchess.debugPly").flatMap(Int.init)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                reviewTarget = ReviewTarget(id: "debug-loss", ply: ply)
+                page = .review(ReviewTarget(id: "debug-loss", ply: ply), fromHistory: defaults.string(forKey: "nookchess.debugPreset") == "review-history")
             }
         default:
             break
@@ -283,7 +310,7 @@ struct ContentView: View {
                 Label("Pieces", systemImage: "checkerboard.rectangle")
             }
             Button {
-                showHistory = true
+                show(.history)
             } label: {
                 Label("Game history", systemImage: "clock.arrow.circlepath")
             }
@@ -303,6 +330,17 @@ struct ContentView: View {
             Toggle(isOn: $theme.showsCoordinates) {
                 Label("Show coordinates", systemImage: "textformat.abc")
             }
+            Menu {
+                Picker("Coordinate position", selection: $theme.coordinatePlacement) {
+                    ForEach(CoordinatePlacement.allCases) { placement in
+                        Text(placement.title).tag(placement)
+                    }
+                }
+                .pickerStyle(.inline)
+            } label: {
+                Label("Coordinate position", systemImage: "square.grid.3x3.topleft.filled")
+            }
+            .disabled(!theme.showsCoordinates)
             Menu {
                 Picker("Language", selection: $language.language) {
                     ForEach(AppLanguage.allCases) { option in
@@ -376,7 +414,12 @@ struct ContentView: View {
         .environmentObject(LanguageStore())
 }
 
-struct ReviewTarget: Identifiable {
+struct ReviewTarget: Identifiable, Equatable {
     let id: String
     var ply: Int?
+}
+
+enum AppPage: Equatable {
+    case history
+    case review(ReviewTarget, fromHistory: Bool)
 }

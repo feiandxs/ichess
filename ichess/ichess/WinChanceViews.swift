@@ -176,6 +176,8 @@ struct WinBarView: View {
 struct BoardBarLayout: Layout {
     var thickness: CGFloat = 22
     var gap: CGFloat = 6
+    /// 棋盘外坐标边槽占比（见 BoardGutter）；胜率条只对齐棋盘本体，不含边槽。
+    var gutterRatio: CGFloat = 0
 
     private func plan(_ proposal: ProposedViewSize, hasBar: Bool) -> (side: CGFloat, vertical: Bool) {
         let width = proposal.width ?? 360
@@ -199,15 +201,16 @@ struct BoardBarLayout: Layout {
         let p = plan(ProposedViewSize(width: bounds.width, height: bounds.height), hasBar: subviews.count > 1)
         subviews[0].place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(width: p.side, height: p.side))
         guard subviews.count > 1 else { return }
+        let inset = BoardGutter.inset(side: p.side, ratio: gutterRatio)
         if p.vertical {
             subviews[1].place(
                 at: CGPoint(x: bounds.minX + p.side + gap, y: bounds.minY), anchor: .topLeading,
-                proposal: ProposedViewSize(width: thickness, height: p.side)
+                proposal: ProposedViewSize(width: thickness, height: p.side - inset)
             )
         } else {
             subviews[1].place(
-                at: CGPoint(x: bounds.minX, y: bounds.minY + p.side + gap), anchor: .topLeading,
-                proposal: ProposedViewSize(width: p.side, height: thickness)
+                at: CGPoint(x: bounds.minX + inset, y: bounds.minY + p.side + gap), anchor: .topLeading,
+                proposal: ProposedViewSize(width: p.side - inset, height: thickness)
             )
         }
     }

@@ -18,7 +18,7 @@ struct VerdictInfoView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     step("1", String(localized: "After you move, Stockfish evaluates the position before and after your move, about \(seconds) seconds each.", bundle: .localized))
-                    step("2", String(localized: "Each evaluation becomes your win chances (0–100%) using Lichess’s published formula.", bundle: .localized))
+                    step("2", String(localized: "Each evaluation is converted into your win chances (0 to 100 percent) using Lichess’s published formula.", bundle: .localized))
                     step("3", String(localized: "The rating depends on how far your win chances dropped: Inaccuracy from \(Int(MoveClassifier.inaccuracyDrop)) points, Mistake from \(Int(MoveClassifier.mistakeDrop)), Blunder from \(Int(MoveClassifier.blunderDrop)). Within \(Int(MoveClassifier.bestTolerance)) point of the best move counts as Best.", bundle: .localized))
                     step("4", String(localized: "Lichess uses 5 / 10 / 15 points (10 / 20 / 30 on its −100…100 scale). These are a little more lenient, because the search is short and this app is for learners.", bundle: .localized))
                     step("5", String(localized: "A rating is always about your move, never the computer’s. Evaluations are estimates and can change with deeper search.", bundle: .localized))

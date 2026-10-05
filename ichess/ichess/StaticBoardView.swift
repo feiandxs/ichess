@@ -20,34 +20,40 @@ struct StaticBoardView: View {
         let palette = theme.palette
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
-            let square = side / 8
-            ZStack {
-                Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-                    ForEach(0..<8, id: \.self) { row in
-                        GridRow {
-                            ForEach(0..<8, id: \.self) { col in
-                                cell(row: row, col: col, size: square, palette: palette)
-                            }
-                        }
-                    }
-                }
-                if theme.showsCoordinates {
-                    BoardCoordinatesView(squareSize: square, palette: palette)
-                }
-                ForEach(arrows) { arrow in
-                    BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(width: side, height: side, alignment: .topLeading)
-            .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
-                    .strokeBorder(palette.boardBorder, lineWidth: 1.5)
+            BoardFrame(side: side) { boardSide in
+                boardContent(side: boardSide, palette: palette)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .aspectRatio(1, contentMode: .fit)
+    }
+
+    private func boardContent(side: CGFloat, palette: BoardPalette) -> some View {
+        let square = side / 8
+        return ZStack {
+            Grid(horizontalSpacing: 0, verticalSpacing: 0) {
+                ForEach(0..<8, id: \.self) { row in
+                    GridRow {
+                        ForEach(0..<8, id: \.self) { col in
+                            cell(row: row, col: col, size: square, palette: palette)
+                        }
+                    }
+                }
+            }
+            if theme.showsCoordinates, theme.coordinatePlacement == .inside {
+                BoardCoordinatesView(squareSize: square, palette: palette)
+            }
+            ForEach(arrows) { arrow in
+                BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(width: side, height: side, alignment: .topLeading)
+        .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
+                .strokeBorder(palette.boardBorder, lineWidth: 1.5)
+        }
     }
 
     private func cell(row: Int, col: Int, size: CGFloat, palette: BoardPalette) -> some View {
