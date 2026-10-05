@@ -311,26 +311,6 @@
         }
       }
     },
-    "Hint Unavailable": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提示暂不可用"
-          }
-        }
-      }
-    },
-    "OK": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "好"
-          }
-        }
-      }
-    },
     "Resign this game?": {
       "localizations": {
         "zh-Hans": {
@@ -351,7 +331,7 @@
         }
       }
     },
-    "This game will count as a loss and your practice points will be updated.": {
+    "This game will count as a loss and your points will be updated.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -487,16 +467,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "双方同意"
-          }
-        }
-      }
-    },
-    "Practicing": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "练习中"
           }
         }
       }
@@ -671,12 +641,12 @@
         }
       }
     },
-    "Choose before your first move to apply immediately. Changes during a game apply next game. Difficulty does not change your practice points.": {
+    "Choose before your first move to apply immediately. Changes during a game apply next game. Difficulty does not change the points you earn in Battle.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开局前选择立即生效；对局中修改从下一盘生效。难度不会改变你的练习积分。"
+            "value": "开始第一步之前选择会立即生效，对局中更改则从下一局开始。难度不会影响你在对战中获得的积分。"
           }
         }
       }
@@ -706,7 +676,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "练习积分 %@"
+            "value": "积分 %@"
           }
         }
       }
@@ -813,6 +783,1124 @@
           "stringUnit": {
             "state": "translated",
             "value": "连败 %lld"
+          }
+        }
+      }
+    },
+    "Red marks: moving there loses material": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "红色标记：走到这里会丢子"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can be captured for free": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的%1$@（%2$@）会被白吃"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ and %lld more can be captured for free": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的%1$@（%2$@）和另外 %3$lld 个子会被白吃"
+          }
+        }
+      }
+    },
+    "Pawn": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兵"
+          }
+        }
+      }
+    },
+    "King": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "王"
+          }
+        }
+      }
+    },
+    "Mark pieces that can be captured for free": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标出会被白吃的子"
+          }
+        }
+      }
+    },
+    "Mark risky squares for the selected piece": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选子时标出危险落点"
+          }
+        }
+      }
+    },
+    "Follow System": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "Practice": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习"
+          }
+        }
+      }
+    },
+    "Battle": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对战"
+          }
+        }
+      }
+    },
+    "Mode": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式"
+          }
+        }
+      }
+    },
+    "No streak yet": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无连胜"
+          }
+        }
+      }
+    },
+    "Practice aids": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习辅助"
+          }
+        }
+      }
+    },
+    "Suggested move: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议走法：%@"
+          }
+        }
+      }
+    },
+    "Practice games don’t count toward points": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "练习局不计积分"
+          }
+        }
+      }
+    },
+    "This is a practice game, so your points won’t change.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是一盘练习局，积分不会变化。"
+          }
+        }
+      }
+    },
+    "Trying moves": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试走中"
+          }
+        }
+      }
+    },
+    "Best move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最佳"
+          }
+        }
+      }
+    },
+    "Good move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好棋"
+          }
+        }
+      }
+    },
+    "Inaccuracy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不够精确"
+          }
+        }
+      }
+    },
+    "Mistake": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失误"
+          }
+        }
+      }
+    },
+    "Blunder": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大漏着"
+          }
+        }
+      }
+    },
+    "You missed a checkmate.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你漏掉了一步杀棋。"
+          }
+        }
+      }
+    },
+    "This lets your opponent checkmate you.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这步会让对方将死你。"
+          }
+        }
+      }
+    },
+    "This move loses your %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这步会丢掉你的%@。"
+          }
+        }
+      }
+    },
+    "Your opponent can capture your %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方可以吃掉你的%@。"
+          }
+        }
+      }
+    },
+    "You missed a chance to capture a %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你漏掉了吃%@的机会。"
+          }
+        }
+      }
+    },
+    "Better: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更好的是 %@"
+          }
+        }
+      }
+    },
+    "Your opponent will checkmate you (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会将死你（%@）"
+          }
+        }
+      }
+    },
+    "Your opponent will capture your %@ with a %@ (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会用%2$@吃掉你的%1$@（%3$@）"
+          }
+        }
+      }
+    },
+    "Your opponent will give check (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会将军（%@）"
+          }
+        }
+      }
+    },
+    "Your opponent will play %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方会走 %@"
+          }
+        }
+      }
+    },
+    "It also gives check.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时还将了军。"
+          }
+        }
+      }
+    },
+    "You’d come out behind in material.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这样你会亏子。"
+          }
+        }
+      }
+    },
+    "But you can capture back.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不过你可以吃回去。"
+          }
+        }
+      }
+    },
+    "Your opponent could checkmate you within %lld moves.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方 %lld 步内可以将死你。"
+          }
+        }
+      }
+    },
+    "This checkmates your opponent!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这步直接将死对方！"
+          }
+        }
+      }
+    },
+    "This move ends the game in a draw.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这步之后会形成和棋。"
+          }
+        }
+      }
+    },
+    "Forced mate for you": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可强制杀棋"
+          }
+        }
+      }
+    },
+    "You may get mated": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "面临被杀"
+          }
+        }
+      }
+    },
+    "Winning": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大优"
+          }
+        }
+      }
+    },
+    "Clearly better": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明显占优"
+          }
+        }
+      }
+    },
+    "Slightly better": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "略占优"
+          }
+        }
+      }
+    },
+    "Equal": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "均势"
+          }
+        }
+      }
+    },
+    "Slightly worse": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "略落后"
+          }
+        }
+      }
+    },
+    "Clearly worse": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明显落后"
+          }
+        }
+      }
+    },
+    "Losing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大幅落后"
+          }
+        }
+      }
+    },
+    "Evaluation: %@ → %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "局面评估：%@ → %@"
+          }
+        }
+      }
+    },
+    "Evaluation: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "局面评估：%@"
+          }
+        }
+      }
+    },
+    "Try moves": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试走"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后退"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新试"
+          }
+        }
+      }
+    },
+    "Play this move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这步就走它"
+          }
+        }
+      }
+    },
+    "Your opponent is replying…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方正在思考…"
+          }
+        }
+      }
+    },
+    "Try a move to see how your opponent could answer. Nothing here changes your real game.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走一步试试，看看对方会怎么应对。这里的操作不会影响真实对局。"
+          }
+        }
+      }
+    },
+    "Try moving this piece": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试试动这个子"
+          }
+        }
+      }
+    },
+    "Try moving it to the marked square": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试试走到标出的这一格"
+          }
+        }
+      }
+    },
+    "Likely continuation: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接下来可能是：%@"
+          }
+        }
+      }
+    },
+    "Hint %lld/3": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提示 %lld/3"
+          }
+        }
+      }
+    },
+    "Review each move after you play": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每步棋后点评"
+          }
+        }
+      }
+    },
+    "Your move %lld. %@: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的第 %1$lld 步 %2$@：%3$@"
+          }
+        }
+      }
+    },
+    "Win chances: %@ → %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胜率：%1$@ → %2$@"
+          }
+        }
+      }
+    },
+    "How moves are rated": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评级是怎么算的"
+          }
+        }
+      }
+    },
+    "After you move, Stockfish evaluates the position before and after your move, about %@ seconds each.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你走完一步后，Stockfish 会分别评估这步棋之前和之后的局面，每个局面约 %@ 秒。"
+          }
+        }
+      }
+    },
+    "Each evaluation is converted into your win chances (0 to 100 percent) using Lichess’s published formula.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个评估都会用 Lichess 公开的公式换算成你的胜率（0 到 100 之间）。"
+          }
+        }
+      }
+    },
+    "The rating depends on how far your win chances dropped: Inaccuracy from %lld points, Mistake from %lld, Blunder from %lld. Within %lld point of the best move counts as Best.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评级看你的胜率下降了多少：下降 %1$lld 个百分点起算不够精确，%2$lld 起算失误，%3$lld 起算大漏着；和最佳着法相差不到 %4$lld 个百分点算最佳。"
+          }
+        }
+      }
+    },
+    "Lichess uses 5 / 10 / 15 points (10 / 20 / 30 on its −100…100 scale). These are a little more lenient, because the search is short and this app is for learners.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lichess 的标准是 5 / 10 / 15 个百分点（在它 −100…100 的胜算刻度上是 10 / 20 / 30）。这里稍微宽松一些，因为搜索时间短，也因为这个应用是给初学者用的。"
+          }
+        }
+      }
+    },
+    "A rating is always about your move, never the computer’s. Evaluations are estimates and can change with deeper search.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评级永远只针对你的这一步，不针对电脑。评估只是估计，搜得更深可能会有变化。"
+          }
+        }
+      }
+    },
+    "Best": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最佳"
+          }
+        }
+      }
+    },
+    "Good": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好棋"
+          }
+        }
+      }
+    },
+    "Resigned": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已认输"
+          }
+        }
+      }
+    },
+    "Left unfinished": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未下完"
+          }
+        }
+      }
+    },
+    "Win": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胜"
+          }
+        }
+      }
+    },
+    "Loss": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "负"
+          }
+        }
+      }
+    },
+    "Unfinished": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未完成"
+          }
+        }
+      }
+    },
+    "Review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复盘"
+          }
+        }
+      }
+    },
+    "Game history": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对局记录"
+          }
+        }
+      }
+    },
+    "Show win chances": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示胜率"
+          }
+        }
+      }
+    },
+    "Win chances": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胜率"
+          }
+        }
+      }
+    },
+    "Your win chances": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的胜率"
+          }
+        }
+      }
+    },
+    "Reviewing your move…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在评估你的这一步…"
+          }
+        }
+      }
+    },
+    "Analyzing the game… %lld/%lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在分析对局… %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Analysis unavailable right now.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法分析。"
+          }
+        }
+      }
+    },
+    "Accuracy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准确率"
+          }
+        }
+      }
+    },
+    "Key moment": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关键时刻"
+          }
+        }
+      }
+    },
+    "No big mistakes. Nicely played!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有大的失误，下得不错！"
+          }
+        }
+      }
+    },
+    "This game is no longer available.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这盘棋已不存在。"
+          }
+        }
+      }
+    },
+    "First move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一步"
+          }
+        }
+      }
+    },
+    "Previous move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一步"
+          }
+        }
+      }
+    },
+    "Next move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一步"
+          }
+        }
+      }
+    },
+    "Last move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最后一步"
+          }
+        }
+      }
+    },
+    "Moves": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "着法"
+          }
+        }
+      }
+    },
+    "Starting position": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起始局面"
+          }
+        }
+      }
+    },
+    "Computer’s move %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电脑的着法 %@"
+          }
+        }
+      }
+    },
+    "Engine line: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引擎推荐的后续：%@"
+          }
+        }
+      }
+    },
+    "Your move %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的着法 %@"
+          }
+        }
+      }
+    },
+    "Analyzing…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析中…"
+          }
+        }
+      }
+    },
+    "Not analyzed yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有分析。"
+          }
+        }
+      }
+    },
+    "Key mistakes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关键错误"
+          }
+        }
+      }
+    },
+    "No games yet": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有对局记录"
+          }
+        }
+      }
+    },
+    "Finished games show up here so you can review them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下完的棋会出现在这里，方便复盘。"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "%lld moves": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld move"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld moves"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 步"
+          }
+        }
+      }
+    },
+    "Soft Geometry": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圆润几何"
+          }
+        }
+      }
+    },
+    "Crisp Facets": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锐角切面"
+          }
+        }
+      }
+    },
+    "Bold Blocks": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厚重积木"
+          }
+        }
+      }
+    },
+    "Monoline": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单线轮廓"
+          }
+        }
+      }
+    },
+    "Badge Discs": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圆徽章"
           }
         }
       }

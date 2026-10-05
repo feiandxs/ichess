@@ -16,13 +16,30 @@ struct PieceSet: Identifiable, Hashable, Codable {
     let name: String
     let source: String
     let style: String
+    /// How the artwork sits on a square. nil: bottom-aligned (default),
+    /// "centered": centred 64x72 art (Nook Flat), "square": centred 100x100 art.
+    var layout: String? = nil
+
+    var isCentered: Bool { layout == "centered" || layout == "square" }
+    var isSquareArt: Bool { layout == "square" }
+
+    var localizedName: String {
+        switch name {
+        case "Soft Geometry": String(localized: "Soft Geometry", bundle: .localized)
+        case "Crisp Facets": String(localized: "Crisp Facets", bundle: .localized)
+        case "Bold Blocks": String(localized: "Bold Blocks", bundle: .localized)
+        case "Monoline": String(localized: "Monoline", bundle: .localized)
+        case "Badge Discs": String(localized: "Badge Discs", bundle: .localized)
+        default: name
+        }
+    }
 
     var isSculpt: Bool { style == "sculpt" }
 
     var localizedSource: String {
         switch source {
-        case "自绘": String(localized: "Original artwork")
-        case "自绘 SVG": String(localized: "Original SVG artwork")
+        case "自绘": String(localized: "Original artwork", bundle: .localized)
+        case "自绘 SVG": String(localized: "Original SVG artwork", bundle: .localized)
         default: source
         }
     }
@@ -64,17 +81,25 @@ final class PieceSetStore: ObservableObject {
         var sets: [PieceSet]
     }
 
+    private static func bundledCatalog(named name: String) -> Catalog? {
+        let url = Bundle.main.url(forResource: name, withExtension: "json", subdirectory: "PieceSets")
+            ?? Bundle.main.url(forResource: name, withExtension: "json")
+        guard let url, let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(Catalog.self, from: data)
+    }
+
     private static func loadCatalog() -> Catalog {
-        let url = Bundle.main.url(forResource: "catalog", withExtension: "json", subdirectory: "PieceSets")
-            ?? Bundle.main.url(forResource: "catalog", withExtension: "json")
-        if let url, let data = try? Data(contentsOf: url),
-           let catalog = try? JSONDecoder().decode(Catalog.self, from: data),
-           !catalog.sets.isEmpty {
+        if var catalog = bundledCatalog(named: "catalog"), !catalog.sets.isEmpty {
+            // 可选的本地目录（不入库），其中的款式追加到内置目录之后
+            if let local = bundledCatalog(named: "catalog.local") {
+                let known = Set(catalog.sets.map(\.id))
+                catalog.sets += local.sets.filter { !known.contains($0.id) }
+            }
             return catalog
         }
         return Catalog(
             defaultID: "nook_flat",
-            sets: [PieceSet(id: "nook_flat", name: "Nook Flat", source: "自绘 SVG", style: "icon")]
+            sets: [PieceSet(id: "nook_flat", name: "Nook Flat", source: "自绘 SVG", style: "icon", layout: "centered")]
         )
     }
 }

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Badge Discs - white pawn</title>
+  <circle cx="50" cy="50" r="38" fill="#F7F8F6" stroke="#2F3E46" stroke-width="3"/><g fill="#2F3E46"><circle cx="50" cy="36" r="11"/><path d="M38 72Q46 57 44 49H56Q54 57 62 72Z"/><rect x="35" y="47" width="30" height="6" rx="3"/><rect x="30" y="69" width="40" height="6" rx="3"/></g>
+</svg>

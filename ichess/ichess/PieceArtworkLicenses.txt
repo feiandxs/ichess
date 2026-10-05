@@ -254,3 +254,5 @@ Lichess records this set as CC0 in its COPYING.md (linked above).
 Clay 3D is recorded in this project's catalog as original artwork.
 
 Nook Flat is original artwork authored for Nook Chess in 2026. Editable SVG masters are stored in artwork/nook-flat; no third-party piece paths were reused.
+
+Nook Soft Geometry, Crisp Facets, Bold Blocks, Monoline and Badge Discs (ids nook_soft, nook_crisp, nook_block, nook_mono, nook_badge) are likewise original artwork authored for Nook Chess in 2026. Editable SVG masters and generator scripts are stored in artwork/nook-soft, nook-crisp, nook-block, nook-mono, nook-badge and artwork/piece-lab; no third-party piece paths were reused.

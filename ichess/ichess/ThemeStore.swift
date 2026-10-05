@@ -88,7 +88,58 @@ struct BoardPalette {
             : Color.white
     }
 
+    var danger: Color {
+        isDark ? Color(red: 1, green: 0.42, blue: 0.38) : Color(red: 0.86, green: 0.20, blue: 0.16)
+    }
+
     var targetFill: Color {
         isDark ? Color.black.opacity(0.28) : Color.black.opacity(0.22)
     }
+
+    /// 试走沙盒的强调色：边框、染色、标签。
+    var sandbox: Color {
+        isDark ? Color(red: 0.68, green: 0.58, blue: 1.0) : Color(red: 0.45, green: 0.30, blue: 0.85)
+    }
+
+    /// 棋盘箭头：更好的走法（蓝）、提示（琥珀）、对方的应对（红）。
+    func arrow(_ style: BoardArrow.Style) -> Color {
+        switch style {
+        case .better:
+            isDark ? Color(red: 0.36, green: 0.68, blue: 1.0) : Color(red: 0.12, green: 0.50, blue: 0.92)
+        case .hint:
+            isDark ? Color(red: 1.0, green: 0.72, blue: 0.20) : Color(red: 0.95, green: 0.58, blue: 0.05)
+        case .reply:
+            danger
+        }
+    }
+
+    /// 走后点评各等级的颜色。
+    func verdict(_ verdict: MoveVerdict) -> Color {
+        switch verdict {
+        case .best, .good:
+            isDark ? Color(red: 0.45, green: 0.85, blue: 0.40) : Color(red: 0.16, green: 0.58, blue: 0.20)
+        case .inaccuracy:
+            isDark ? Color(red: 1.0, green: 0.80, blue: 0.30) : Color(red: 0.72, green: 0.48, blue: 0.0)
+        case .mistake:
+            isDark ? Color(red: 1.0, green: 0.62, blue: 0.28) : Color(red: 0.86, green: 0.40, blue: 0.04)
+        case .blunder:
+            danger
+        }
+    }
+
+    /// 胜率条：玩家（白）一侧与对手（黑）一侧。
+    var winBarWhite: Color {
+        isDark ? Color(red: 0.93, green: 0.95, blue: 0.96) : Color.white
+    }
+
+    var winBarBlack: Color {
+        isDark ? Color(red: 0.06, green: 0.09, blue: 0.11) : Color(red: 0.22, green: 0.27, blue: 0.31)
+    }
+
+    /// 胜率曲线的线条与填充。
+    var chartLine: Color { arrow(.better) }
+
+    /// 积极 / 消极的变化（胜率上升、下降）。
+    var gain: Color { verdict(.best) }
+    var loss: Color { verdict(.mistake) }
 }

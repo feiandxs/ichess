@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Badge Discs - black queen</title>
+  <circle cx="50" cy="50" r="38" fill="#3B4E58" stroke="#0F1920" stroke-width="3"/><g fill="#E8EEF1"><path d="M27 36L35 55L39 30L45 53L50 26L55 53L61 30L65 55L73 36L68 66H32Z"/><circle cx="27" cy="32" r="4.2"/><circle cx="39" cy="26" r="4.2"/><circle cx="50" cy="22" r="4.2"/><circle cx="61" cy="26" r="4.2"/><circle cx="73" cy="32" r="4.2"/><rect x="31" y="66" width="38" height="7" rx="2"/></g>
+</svg>

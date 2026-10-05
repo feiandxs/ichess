@@ -47,3 +47,5 @@
 ## 后续原创棋子
 
 按用户要求新增原创 Nook Flat 平面几何棋子，并设为默认。现有 7 套、84 张 PNG。原始 SVG 保留在 artwork/nook-flat，没有复用第三方棋子路径；导入脚本包含对应渲染步骤。
+
+后续新增五套原创棋子：圆润几何、锐角切面、厚重积木、单线轮廓、圆徽章（nook_soft / nook_crisp / nook_block / nook_mono / nook_badge）。入库棋子共 12 套、144 张 PNG，全部为自绘或已核实许可；SVG 源文件与生成脚本位于 artwork/。

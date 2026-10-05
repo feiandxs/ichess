@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Soft Geometry - black knight</title>
+  <g fill="#0F1920" stroke="#0F1920" stroke-width="5" stroke-linejoin="round" stroke-miterlimit="4"><path d="M30 74Q30 60 42 52L26 58Q18 60 17 53Q17 46 24 40L33 30L38 14L47 25Q62 26 70 40Q76 54 72 74Z"/><rect x="20" y="73" width="60" height="11" rx="5.5"/></g><g fill="#3B4E58"><path d="M30 74Q30 60 42 52L26 58Q18 60 17 53Q17 46 24 40L33 30L38 14L47 25Q62 26 70 40Q76 54 72 74Z"/><rect x="20" y="73" width="60" height="11" rx="5.5"/></g><g fill="none" stroke="#E8EEF1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M50 32Q63 40 65 60"/></g><g fill="#E8EEF1"><circle cx="40" cy="36" r="3.2"/><circle cx="22" cy="49" r="1.8"/></g>
+</svg>

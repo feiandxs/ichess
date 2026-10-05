@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Bold Blocks - white king</title>
+  <g fill="#2F3E46" stroke="#2F3E46" stroke-width="8" stroke-linejoin="round" stroke-miterlimit="4"><rect x="43" y="6" width="14" height="34" rx="2"/><rect x="32" y="14" width="36" height="13" rx="2"/><path d="M24 72Q24 50 36 42H64Q76 50 76 72Z"/><rect x="16" y="71" width="68" height="13" rx="3"/></g><g fill="#F7F8F6"><rect x="43" y="6" width="14" height="34" rx="2"/><rect x="32" y="14" width="36" height="13" rx="2"/><path d="M24 72Q24 50 36 42H64Q76 50 76 72Z"/><rect x="16" y="71" width="68" height="13" rx="3"/></g><g fill="none" stroke="#2F3E46" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M36 55H64"/></g>
+</svg>

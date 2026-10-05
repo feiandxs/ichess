@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Badge Discs - white knight</title>
+  <circle cx="50" cy="50" r="38" fill="#F7F8F6" stroke="#2F3E46" stroke-width="3"/><g fill="#2F3E46"><g transform="translate(17.5 15.5) scale(.7)"><path d="M30 74Q30 60 42 52L26 58Q18 60 17 53Q17 46 24 40L33 30L38 14L47 25Q62 26 70 40Q76 54 72 74Z"/><rect x="20" y="73" width="60" height="11" rx="5.5"/></g></g><circle cx="45.5" cy="40.7" r="2.4" fill="#F7F8F6"/>
+</svg>
