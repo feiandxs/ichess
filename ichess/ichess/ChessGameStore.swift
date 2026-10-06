@@ -36,8 +36,19 @@ final class ChessGameStore: ObservableObject {
     @Published private(set) var hintSAN: String?
     /// 推荐走法起的主变例（SAN，含第一步）。
     @Published private(set) var hintLine: [String] = []
-    /// 0 未提示；1 标出要动的子；2 再标出目标格；3 画出箭头并给出后续变例。
+    /// 0 未提示；1 说想法；2 标出要动的子并说为什么；3 画出箭头、说清原因和胜率。
     @Published private(set) var hintLevel = 0
+    /// 提示三级的内容（想法 / 哪个子 / 答案），文字随语言现说。
+    @Published private(set) var hintExplanation: HintExplanation?
+    /// 走完提示这步后玩家的胜率（0...100）。
+    @Published private(set) var hintWin: Double?
+    /// 前三名候选走法；只在当前局面有效，局面一变就清除。
+    @Published private(set) var candidates: CandidateSet?
+    @Published private(set) var isCandidatesThinking = false
+    /// 候选列表正在显示（替换说明区）。
+    @Published private(set) var candidatesVisible = false
+    /// 点中的候选（箭头和变例跟着它）。
+    @Published private(set) var selectedCandidate: Int?
     @Published private(set) var isEngineThinking = false
     @Published private(set) var rating = Strength.defaultRating
     @Published private(set) var winStreak = 0
@@ -60,6 +71,7 @@ final class ChessGameStore: ObservableObject {
                 exitSandbox()
                 cancelFeedback()
                 invalidateThreat()
+                clearHint()
             }
             refreshSafety()
             refreshKeyPoint()
@@ -121,6 +133,7 @@ final class ChessGameStore: ObservableObject {
     /// 试走沙盒；非 nil 表示正在试走，棋盘显示的是沙盒局面。
     @Published private(set) var sandbox: SandboxState? {
         didSet {
+            clearHint()
             refreshSafety()
             invalidateThreat()
             refreshKeyPoint()
@@ -168,7 +181,15 @@ final class ChessGameStore: ObservableObject {
     private var threatTask: Task<Void, Never>?
     /// 显示的局面每变一次就 +1，丢弃过期的「对方想干什么」结果。
     private var threatRevision = 0
+    /// 提示 / 候选对应的局面每变一次就 +1（clearHint），丢弃过期的搜索结果。
+    private var hintRevision = 0
+    private var hintUCI: String?
+    private var candidateTask: Task<Void, Never>?
+    /// 候选线按局面 FEN 缓存，重复点「候选走法」不用再搜。
+    private var candidateCache: [String: [EngineLine]] = [:]
     private let analyses = AnalysisCache()
+    /// 候选走法的搜索时长（毫秒），满力、三条线。
+    private static let candidateMovetime = 700
     /// 试走里对方应对的搜索时长（毫秒），满力。
     private static let sandboxMovetime = 800
     /// 「对方想干什么」的搜索时长（毫秒），要短，和对手走子共用同一个引擎。
@@ -191,10 +212,10 @@ final class ChessGameStore: ObservableObject {
 
     /// 分级提示要高亮的格子。
     var hintSquares: Set<Square> {
-        guard !isTrying, let hint else { return [] }
+        guard let hint else { return [] }
         switch hintLevel {
-        case 0: return []
-        case 1: return [hint.0]
+        case 0, 1: return []
+        case 2: return [hint.0]
         default: return [hint.0, hint.1]
         }
     }
@@ -205,14 +226,28 @@ final class ChessGameStore: ObservableObject {
         return base + [BoardArrow(from: threat.from, to: threat.to, style: .threat)]
     }
 
-    private var baseArrows: [BoardArrow] {
-        if let sandbox {
-            guard let ply = sandbox.plies.last, ply.isReply else { return [] }
-            return [BoardArrow(from: ply.played.from, to: ply.played.to, style: .reply)]
+    /// 候选列表里点中的那步，或提示的最终答案。
+    private var hintArrows: [BoardArrow] {
+        if candidatesVisible, let index = selectedCandidate, let set = candidates, set.candidates.indices.contains(index) {
+            let move = set.candidates[index]
+            return [BoardArrow(from: move.from, to: move.to, style: .hint)]
         }
         if hintLevel >= 3, let hint {
             return [BoardArrow(from: hint.0, to: hint.1, style: .hint)]
         }
+        return []
+    }
+
+    private var baseArrows: [BoardArrow] {
+        if let sandbox {
+            var result = hintArrows
+            if let ply = sandbox.plies.last, ply.isReply {
+                result.insert(BoardArrow(from: ply.played.from, to: ply.played.to, style: .reply), at: 0)
+            }
+            return result
+        }
+        let shownHint = hintArrows
+        if !shownHint.isEmpty { return shownHint }
         // 提示优先；没有提示时显示上一步点评里更好的走法。
         if hintLevel == 0, showsFeedback, feedbackPly == moves.count, let feedback, feedback.verdict.isProblem, let better = feedback.better {
             return [BoardArrow(from: better.from, to: better.to, style: .better)]
@@ -235,8 +270,23 @@ final class ChessGameStore: ObservableObject {
     var isFreshGame: Bool { moves.isEmpty && !isGameOver }
 
     var canUndo: Bool { activeMode.allowsAids && !isTrying && !hasResigned && !moves.isEmpty }
+    /// 当前显示的局面（真实或试走）轮到玩家、没结束、没有搜索 / 动画在进行。
+    private var canActOnShown: Bool {
+        guard !isGameOver, pendingPromotion == nil, !isEngineThinking,
+              shownBoard.position.sideToMove == playerColor else { return false }
+        switch shownBoard.state {
+        case .active, .check: break
+        default: return false
+        }
+        return !isTrying || (!isSandboxThinking && !opponentMoveAnimating)
+    }
+
     var canHint: Bool {
-        activeMode.allowsAids && !isTrying && hintLevel < 3 && hasChosenDifficulty && !isHintThinking && !isEngineThinking && !isGameOver && pendingPromotion == nil && sideToMove == playerColor
+        activeMode.allowsAids && hintLevel < 3 && hasChosenDifficulty && !isHintThinking && canActOnShown
+    }
+
+    var canCompare: Bool {
+        activeMode.allowsAids && hasChosenDifficulty && canActOnShown
     }
 
     var isGameOver: Bool {
@@ -416,36 +466,113 @@ final class ChessGameStore: ObservableObject {
         ensureWinChances()
     }
 
-    /// 连按逐级加深：先标出要动的子，再标出目标格，最后画出完整走法和后续变例。
+    /// 连按逐级加深：先说想法，再标出要动的子并说为什么，最后画出完整走法、说清原因和胜率。
+    /// 试走里也能用（对着沙盒当前局面）。
     func showHint() {
         guard canHint else { return }
         clearThreat()
+        hideCandidates()
         if hint != nil {
             hintLevel += 1
+            // 到了答案这一级，顺手把前三名候选算好，答案里就能说「只有这一步」。
+            if hintLevel >= 3 { ensureCandidates() }
             return
         }
-        let snapshot = board
-        let revision = positionRevision
+        let snapshot = shownBoard
+        let revision = hintRevision
         isHintThinking = true
         hintError = nil
         hintTask = Task {
-            defer { if positionRevision == revision { isHintThinking = false } }
+            defer { if hintRevision == revision { isHintThinking = false } }
             do {
                 let analysis = try await analyze(snapshot.position.fen)
-                guard positionRevision == revision else { return }
-                guard let applied = MoveExplainer.apply(uci: analysis.bestMove, on: snapshot) else {
+                guard hintRevision == revision else { return }
+                // 候选已经算过时，以它的第一名为准，箭头和列表一致。
+                let uci = candidates?.candidates.first?.uci ?? analysis.bestMove
+                guard let applied = MoveExplainer.apply(uci: uci, on: snapshot) else {
                     throw HintError.unavailable
                 }
                 hint = (applied.played.start, applied.played.end)
+                hintUCI = uci
                 hintSAN = applied.final.san
-                hintLine = analysis.pv.first == analysis.bestMove
+                hintLine = analysis.pv.first == uci
                     ? MoveExplainer.sanLine(pv: analysis.pv, from: snapshot, limit: 4)
                     : [applied.final.san]
+                hintWin = analysis.pv.first == uci ? analysis.score.map { MoveClassifier.winPercent($0) } : candidates?.candidates.first?.winPercent
+                hintExplanation = HintExplanation.make(board: snapshot, uci: uci, analysis: analysis)
                 hintLevel = 1
                 selected = nil
             } catch is CancellationError {
             } catch {
-                if positionRevision == revision { hintError = error.localizedDescription }
+                if hintRevision == revision { hintError = error.localizedDescription }
+            }
+        }
+    }
+
+    // MARK: - 候选走法
+
+    /// 「候选走法」按钮：显示 / 收起前三名对比。
+    func toggleCandidates() {
+        if candidatesVisible {
+            hideCandidates()
+            return
+        }
+        guard canCompare else { return }
+        clearThreat()
+        candidatesVisible = true
+        hintError = nil
+        if candidates != nil {
+            selectedCandidate = selectedCandidate ?? 0
+        } else {
+            ensureCandidates()
+        }
+    }
+
+    func hideCandidates() {
+        if candidatesVisible { candidatesVisible = false }
+        if selectedCandidate != nil { selectedCandidate = nil }
+    }
+
+    /// 点一步候选：棋盘画出它的箭头，列表下方给出它的变例；再点一次取消。
+    func selectCandidate(_ index: Int) {
+        guard candidatesVisible, let set = candidates, set.candidates.indices.contains(index) else { return }
+        selectedCandidate = selectedCandidate == index ? nil : index
+    }
+
+    /// 对当前显示的局面跑一次 MultiPV=3；已经有 / 在算就不重复。
+    private func ensureCandidates() {
+        guard candidates == nil, !isCandidatesThinking, canCompare else { return }
+        let snapshot = shownBoard
+        let fen = snapshot.position.fen
+        let revision = hintRevision
+        let preferred = hintUCI
+        isCandidatesThinking = true
+        candidateTask = Task { [weak self] in
+            do {
+                var lines = self?.candidateCache[fen] ?? []
+                if lines.isEmpty {
+                    let analysis = try await StockfishHintEngine.shared.analyze(
+                        fen: fen, movetime: Self.candidateMovetime, multipv: 3
+                    )
+                    lines = analysis.lines
+                    if lines.isEmpty, let score = analysis.score {
+                        lines = [EngineLine(multipv: 1, score: score, pv: analysis.pv, depth: analysis.depth)]
+                    }
+                }
+                guard let self, !Task.isCancelled, hintRevision == revision else { return }
+                isCandidatesThinking = false
+                guard let set = CandidateSet.make(board: snapshot, lines: lines, preferred: preferred) else {
+                    throw HintError.unavailable
+                }
+                if candidateCache.count > 16 { candidateCache.removeAll() }
+                candidateCache[fen] = lines
+                candidates = set
+                if candidatesVisible, selectedCandidate == nil { selectedCandidate = 0 }
+            } catch is CancellationError {
+            } catch {
+                guard let self, hintRevision == revision else { return }
+                isCandidatesThinking = false
+                hintError = error.localizedDescription
             }
         }
     }
@@ -955,6 +1082,7 @@ final class ChessGameStore: ObservableObject {
             return
         }
         guard canShowThreat else { return }
+        hideCandidates()
         let shown = shownBoard
         threatError = nil
         // 正被将军：威胁就是将军本身，不用搜索。
@@ -1152,11 +1280,23 @@ final class ChessGameStore: ObservableObject {
         }
     }
 
+    /// 局面变了（或收起提示）：提示、候选和还在跑的搜索全部作废。
     private func clearHint() {
+        hintRevision += 1
+        cancelHint()
+        candidateTask?.cancel()
+        candidateTask = nil
         hint = nil
+        hintUCI = nil
         hintSAN = nil
         hintLine = []
         hintLevel = 0
+        hintExplanation = nil
+        hintWin = nil
+        if candidates != nil { candidates = nil }
+        if isCandidatesThinking { isCandidatesThinking = false }
+        if candidatesVisible { candidatesVisible = false }
+        if selectedCandidate != nil { selectedCandidate = nil }
     }
 
     private func cancelHint() {
@@ -1398,11 +1538,32 @@ extension ChessGameStore {
         let from = Square("d2"), to = Square("d3")
         let preset = UserDefaults.standard.string(forKey: "nookchess.debugPreset") ?? ""
         switch preset {
-        case "hint1", "hint2", "hint3":
-            hint = (from, to)
-            hintSAN = "d3"
-            hintLine = ["d3", "d6", "Nc3", "Nf6"]
-            hintLevel = Int(UserDefaults.standard.string(forKey: "nookchess.debugPreset")!.suffix(1))!
+        case "hint1", "hint2", "hint3", "cand", "cand2", "hint1-sb", "hint2-sb", "hint3-sb", "cand-sb":
+            // 真实引擎：摆好局面，按几次「提示」，再打开候选列表；`-nookchess.debugFEN` 可换局面。
+            let fen = UserDefaults.standard.string(forKey: "nookchess.debugFEN")
+                ?? "rnbqkbnr/pppp1ppp/8/4p3/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 0 2"
+            debugSetPosition(fen)
+            let sandboxed = preset.hasSuffix("-sb")
+            if sandboxed {
+                setTrying(true)
+                sandboxPlay(from: Square("d2"), to: Square("d4"))
+            }
+            let presses = preset.hasPrefix("cand") ? 3 : Int(String(preset.dropFirst(4).prefix(1)))!
+            DispatchQueue.main.asyncAfter(deadline: .now() + (sandboxed ? 4 : 1.5)) { [self] in
+                Task {
+                    for _ in 0..<presses {
+                        showHint()
+                        try? await Task.sleep(for: .seconds(1.5))
+                    }
+                    if preset.hasPrefix("cand") {
+                        toggleCandidates()
+                        try? await Task.sleep(for: .seconds(2))
+                        if preset == "cand2" { selectCandidate(1) }
+                    }
+                }
+            }
+        case "multipv-probe":
+            Task { await runMultiPVProbe() }
         case "blunder":
             feedback = MoveFeedback(
                 verdict: .blunder,
@@ -1581,6 +1742,46 @@ extension ChessGameStore {
         archive.add(make("debug-draw", Self.debugStalemate, .draw, .stalemate, mode: .battle, level: .practiced, delta: 0, days: 2))
         archive.add(make("debug-win", Self.debugWin, .win, .checkmate, mode: .battle, level: .beginner, delta: 8, days: 1))
         archive.add(make("debug-loss", Self.debugLoss, .loss, .resignation, mode: .practice, level: .beginner, delta: nil, days: 0))
+    }
+
+    /// 仅调试：对几个局面跑 MultiPV=3，确认三条线各不相同，且之后的单线搜索不受影响。
+    func runMultiPVProbe() async {
+        let url = URL(fileURLWithPath: "/private/tmp/claude-501/-Users-feiandxs-workspace-ichess/f1acede5-ef41-4382-91e9-a0965c5c7938/scratchpad/multipv.log")
+        try? "".write(to: url, atomically: false, encoding: .utf8)
+        func log(_ text: String) {
+            Swift.print(text)
+            if let handle = try? FileHandle(forWritingTo: url) {
+                handle.seekToEndOfFile(); handle.write((text + "\n").data(using: .utf8)!); try? handle.close()
+            }
+        }
+        let fens = [
+            "rnbqkbnr/pppp1ppp/8/4p3/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 0 2",
+            "r1b1kbnr/pppp1ppp/8/4N1q1/2BnP3/8/PPPP1PPP/RNBQK2R w KQkq - 3 5",
+            "r5k1/5ppp/8/8/8/8/5PPP/6K1 w - - 0 1",
+        ]
+        let engine = StockfishHintEngine.shared
+        for fen in fens {
+            do {
+                let started = Date()
+                let multi = try await engine.analyze(fen: fen, movetime: Self.candidateMovetime, multipv: 3)
+                let ms = Int(Date().timeIntervalSince(started) * 1000)
+                let board = Board(position: Position(fen: fen)!)
+                let sans = multi.lines.map { MoveExplainer.sanLine(pv: $0.pv, from: board, limit: 4).joined(separator: " ") }
+                log("MULTI \(fen) ms=\(ms) lines=\(multi.lines.count) distinctFirst=\(Set(multi.lines.compactMap { $0.pv.first }).count) best=\(multi.bestMove)")
+                for (line, san) in zip(multi.lines, sans) { log("   #\(line.multipv) d\(line.depth) \(line.score) \(san)") }
+                if let set = CandidateSet.make(board: board, lines: multi.lines) {
+                    log("   verdict=\(set.verdict) labels=\(set.candidates.map(\.label)) wins=\(set.candidates.map { Int($0.winPercent) })")
+                    for c in set.candidates { log("   \(c.san): \(c.reason(mover: .white)) | steps=\(c.line.count)") }
+                }
+                let single = try await engine.analyze(fen: fen, movetime: 300)
+                log("SINGLE lines=\(single.lines.count) best=\(single.bestMove) pv=\(single.pv.prefix(3))")
+                let again = try await engine.analyze(fen: fen, movetime: 300, multipv: 3)
+                log("AGAIN lines=\(again.lines.count)")
+            } catch {
+                log("ERR \(error)")
+            }
+        }
+        log("DONE")
     }
 
     /// 仅调试：走 1.e4 / 2.Nf3，打印真实引擎评分和点评结果。

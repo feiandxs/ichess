@@ -31,4 +31,14 @@ nonisolated struct EngineAnalysis: Sendable, Equatable {
     /// 限制棋力（UCI_LimitStrength）时 bestMove 可能与 pv 第一步不同，此时评分对应的是 pv。
     let pv: [String]
     let depth: Int
+    /// MultiPV 搜索的各条候选线（按引擎排名）；普通搜索为空。
+    var lines: [EngineLine] = []
+}
+
+/// MultiPV 搜索里的一条线：第 multipv 名的评分（走子方视角）和变例。
+nonisolated struct EngineLine: Sendable, Equatable {
+    let multipv: Int
+    let score: EngineScore
+    let pv: [String]
+    let depth: Int
 }

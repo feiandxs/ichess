@@ -22,7 +22,8 @@ actor StockfishHintEngine {
     /// 请求会排队串行执行；调用方被取消时会给引擎发 `stop`，并抛出 CancellationError，
     /// 旧搜索的 bestmove 一定在本次请求内读完，不会漏到下一个请求里。
     /// background 为 true 时让位给所有前台请求（对手走子、提示、点评）。
-    func analyze(fen: String, elo: Int? = nil, movetime: Int = 1000, background: Bool = false) async throws -> EngineAnalysis {
+    /// multipv > 1 时结果的 lines 带各条候选线；MultiPV 每次搜索都显式设置，不会漏到别的请求里。
+    func analyze(fen: String, elo: Int? = nil, movetime: Int = 1000, multipv: Int = 1, background: Bool = false) async throws -> EngineAnalysis {
         let token = UUID()
         return try await withTaskCancellationHandler {
             if isSearching {
@@ -50,7 +51,7 @@ actor StockfishHintEngine {
             }
             try Task.checkCancellation()
             // 用非结构化 Task 读响应流：调用方被取消不能连带取消流的迭代，否则流会被终止。
-            let analysis = try await Task { try await self.search(fen: fen, elo: elo, movetime: movetime) }.value
+            let analysis = try await Task { try await self.search(fen: fen, elo: elo, movetime: movetime, multipv: multipv) }.value
             try Task.checkCancellation()
             return analysis
         } onCancel: {
@@ -66,7 +67,7 @@ actor StockfishHintEngine {
         }
     }
 
-    private func search(fen: String, elo: Int?, movetime: Int) async throws -> EngineAnalysis {
+    private func search(fen: String, elo: Int?, movetime: Int, multipv: Int) async throws -> EngineAnalysis {
         let engine = try await prepareEngine()
         guard let stream = await engine.responseStream else { throw HintError.unavailable }
         if cancelRequested { throw CancellationError() }
@@ -81,6 +82,8 @@ actor StockfishHintEngine {
         if let elo {
             await engine.send(command: .setoption(id: "UCI_Elo", value: String(elo)))
         }
+        // ChessKitEngine 只在启动时设一次 MultiPV；这里每次搜索都重设，单线搜索就是 1。
+        await engine.send(command: .setoption(id: "MultiPV", value: String(max(1, multipv))))
         await engine.send(command: .position(.fen(fen)))
         if cancelRequested { throw CancellationError() }
         await engine.send(command: .go(depth: 15, movetime: movetime))

@@ -2384,6 +2384,696 @@
           }
         }
       }
+    },
+    "It checkmates your opponent!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一步将死对方！"
+          }
+        }
+      }
+    },
+    "It stops your opponent’s checkmate threat.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它挡住了对方的杀棋威胁。"
+          }
+        }
+      }
+    },
+    "It gets your king out of check.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它让你的王摆脱了将军。"
+          }
+        }
+      }
+    },
+    "It wins your opponent’s undefended %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它能白吃对方 %2$@ 上没人保护的%1$@。"
+          }
+        }
+      }
+    },
+    "It captures your opponent’s %@ on %@ and comes out ahead.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它吃掉对方 %2$@ 的%1$@，而且你是赚的。"
+          }
+        }
+      }
+    },
+    "It trades your %@ for your opponent’s %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它用你的%1$@换掉对方的%2$@，换得公平。"
+          }
+        }
+      }
+    },
+    "It promotes your pawn to a %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它把你的兵升变成%@。"
+          }
+        }
+      }
+    },
+    "It threatens to win your opponent’s %@ on %@.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它威胁要吃掉对方 %2$@ 的%1$@。"
+          }
+        }
+      }
+    },
+    "It threatens checkmate next move.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它威胁下一步将死对方。"
+          }
+        }
+      }
+    },
+    "It gives check.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它将军了。"
+          }
+        }
+      }
+    },
+    "It saves your %@ on %@ from being captured.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它保住了你 %2$@ 的%1$@，不会被吃。"
+          }
+        }
+      }
+    },
+    "It deals with your opponent’s threat.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它化解了对方的威胁。"
+          }
+        }
+      }
+    },
+    "It castles, which tucks your king away safely and brings a rook into play.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它王车易位，让王更安全，车也出来了。"
+          }
+        }
+      }
+    },
+    "It develops your %@ into the game.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它把你的%@走出来参战。"
+          }
+        }
+      }
+    },
+    "It stakes a claim in the center.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它占住了中心。"
+          }
+        }
+      }
+    },
+    "It helps you control the center.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它帮你控制中心。"
+          }
+        }
+      }
+    },
+    "It keeps your position solid and gives you the best chances.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它让局面更稳，给你最好的机会。"
+          }
+        }
+      }
+    },
+    "You can checkmate your opponent this move. Look at every check!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一步你就能将死对方，把每个将军都看一遍！"
+          }
+        }
+      }
+    },
+    "Your opponent threatens checkmate. Stop it first!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方威胁要将死你，先把它挡住！"
+          }
+        }
+      }
+    },
+    "Your king is in check. Get out of check first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的王被将军了，先解除将军。"
+          }
+        }
+      }
+    },
+    "One of your opponent’s pieces can be captured for free. Look for it!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方有个子可以白吃，找找看！"
+          }
+        }
+      }
+    },
+    "You can win material with a smart capture.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次聪明的吃子就能赚到子力。"
+          }
+        }
+      }
+    },
+    "Trading pieces is a good idea here.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里换子对你有利。"
+          }
+        }
+      }
+    },
+    "Your pawn can promote. Go for it!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的兵可以升变了，走起！"
+          }
+        }
+      }
+    },
+    "Look for a way to pin one of your opponent’s pieces.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找找看，能不能牵制对方的一个子。"
+          }
+        }
+      }
+    },
+    "Look for a long-range attack that hits two pieces in a line.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找一个远程攻击，一条线上同时打到两个子。"
+          }
+        }
+      }
+    },
+    "Look for a move that attacks two pieces at once.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找一步能同时攻击两个子的棋。"
+          }
+        }
+      }
+    },
+    "Look for a move that threatens one of your opponent’s pieces.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找一步能威胁对方某个子的棋。"
+          }
+        }
+      }
+    },
+    "Look for a move that threatens checkmate.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找一步能威胁将死的棋。"
+          }
+        }
+      }
+    },
+    "A check can help you here.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里将军可能对你有帮助。"
+          }
+        }
+      }
+    },
+    "One of your pieces is in danger. Save it first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你有个子正在危险中，先保住它。"
+          }
+        }
+      }
+    },
+    "Your opponent has a threat. Deal with it first.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方有个威胁，先应付它。"
+          }
+        }
+      }
+    },
+    "Think about getting your king to safety.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想想怎么让你的王安全。"
+          }
+        }
+      }
+    },
+    "Bring another knight or bishop into the game.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再出一个马或象参战。"
+          }
+        }
+      }
+    },
+    "Think about the center of the board.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想想棋盘的中心。"
+          }
+        }
+      }
+    },
+    "Nothing urgent here. Improve the position of your pieces.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有急事，把你的子摆到更好的位置。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can deliver checkmate.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能将死对方。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can stop the checkmate.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能挡住杀棋。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can get you out of check.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能解除将军。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can make a good capture.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能吃到好子。"
+          }
+        }
+      }
+    },
+    "Your pawn on %@ is ready to promote.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %@ 的兵可以升变了。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can create a strong attack.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能发起强力进攻。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can start an attack.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能发起进攻。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can threaten checkmate.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能威胁将死。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can give check.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能将军。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ is in danger. Move it to safety.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@有危险，把它带到安全的地方。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can protect your attacked piece.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能保护被攻击的子。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can deal with your opponent’s threat.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能化解对方的威胁。"
+          }
+        }
+      }
+    },
+    "Your king on %@ should move to safety.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %@ 的王该去安全的地方了。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ hasn’t joined the game yet.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@还没出来参战。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can claim space in the center.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能去占中心。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can reach a strong central square.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@能走到中心的好位置。"
+          }
+        }
+      }
+    },
+    "Your %@ on %@ can make the most useful move.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你 %2$@ 的%1$@走一步最有用。"
+          }
+        }
+      }
+    },
+    "Also fine": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "也不错"
+          }
+        }
+      }
+    },
+    "Weaker": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较差"
+          }
+        }
+      }
+    },
+    "Compare moves": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候选走法"
+          }
+        }
+      }
+    },
+    "Compare": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候选"
+          }
+        }
+      }
+    },
+    "What to think about": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "想想这个"
+          }
+        }
+      }
+    },
+    "Try moving the marked piece": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试试动标出的这个子"
+          }
+        }
+      }
+    },
+    "Win chances after this move: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走完这步的胜率：%@"
+          }
+        }
+      }
+    },
+    "Only move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有这一步"
+          }
+        }
+      }
+    },
+    "Several good moves": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好几步都行"
+          }
+        }
+      }
+    },
+    "Comparing the best moves…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在比较最好的几步…"
+          }
+        }
+      }
+    },
+    "This is the only good move.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有这一步是好棋。"
+          }
+        }
+      }
+    },
+    "Several good moves. Pick the one you like.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好几步都不错，挑你喜欢的。"
+          }
+        }
+      }
+    },
+    "One move is a bit better than the rest.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有一步比其他的略好。"
+          }
+        }
+      }
+    },
+    "Line: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续：%@"
+          }
+        }
+      }
+    },
+    "Tap a move to see it on the board.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点一步，在棋盘上看它。"
+          }
+        }
+      }
+    },
+    "It moves your attacked %@ to safety.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "它把被攻击的%@带到了安全的地方。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

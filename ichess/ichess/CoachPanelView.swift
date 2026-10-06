@@ -6,6 +6,7 @@
 //  各区域高度固定（控制行 / 说明区 / 重点提醒 / 底部行），内容变化时棋盘不会跳动。
 //
 
+import ChessKit
 import SwiftUI
 
 struct CoachPanelView: View {
@@ -18,13 +19,24 @@ struct CoachPanelView: View {
     @ScaledMetric(relativeTo: .footnote) private var keyPointHeight: CGFloat = 33
     @State private var showInfo = false
 
+    /// 候选列表的高度 = 说明区 + （开着重点提醒时）重点提醒区 + 中间的间距。
+    private var candidateZoneHeight: CGFloat {
+        lineHeight * 5 + (game.showsKeyPoints ? 8 + keyPointHeight : 0)
+    }
+
     var body: some View {
         let palette = theme.palette
         VStack(alignment: .leading, spacing: 8) {
             controlRow(palette: palette)
-            message(palette: palette)
-                .frame(maxWidth: .infinity, minHeight: lineHeight * 5, maxHeight: lineHeight * 5, alignment: .topLeading)
-            keyPointRow(palette: palette)
+            if game.candidatesVisible {
+                // 候选列表占住说明区 + 重点提醒的位置，总高度不变，棋盘不会跳。
+                candidatePanel(palette: palette)
+                    .frame(maxWidth: .infinity, minHeight: candidateZoneHeight, maxHeight: candidateZoneHeight, alignment: .topLeading)
+            } else {
+                message(palette: palette)
+                    .frame(maxWidth: .infinity, minHeight: lineHeight * 5, maxHeight: lineHeight * 5, alignment: .topLeading)
+                keyPointRow(palette: palette)
+            }
             footer(palette: palette)
                 .frame(maxWidth: .infinity, minHeight: footerHeight, maxHeight: footerHeight, alignment: .leading)
             if game.showsWinChances {
@@ -67,19 +79,21 @@ struct CoachPanelView: View {
             Spacer(minLength: 4)
 
             ViewThatFits(in: .horizontal) {
-                trailingControls(threat: .full, iconOnly: false, palette: palette)
-                trailingControls(threat: .short, iconOnly: false, palette: palette)
-                trailingControls(threat: .icon, iconOnly: false, palette: palette)
-                trailingControls(threat: .icon, iconOnly: true, palette: palette)
+                trailingControls(threat: .full, compare: .full, iconOnly: false, palette: palette)
+                trailingControls(threat: .short, compare: .short, iconOnly: false, palette: palette)
+                trailingControls(threat: .short, compare: .icon, iconOnly: false, palette: palette)
+                trailingControls(threat: .icon, compare: .icon, iconOnly: false, palette: palette)
+                trailingControls(threat: .icon, compare: .icon, iconOnly: true, palette: palette)
             }
         }
         .frame(minHeight: footerHeight)
     }
 
-    /// 「对方想干什么」+（试走时的 退一步 / 重新试，平时的评级说明）。窄屏逐级缩成图标。
-    private func trailingControls(threat: ThreatLabel, iconOnly: Bool, palette: BoardPalette) -> some View {
+    /// 「对方想干什么」+「候选走法」+（试走时的 退一步 / 重新试，平时的评级说明）。窄屏逐级缩成图标。
+    private func trailingControls(threat: ThreatLabel, compare: ThreatLabel, iconOnly: Bool, palette: BoardPalette) -> some View {
         HStack(spacing: 6) {
             threatButton(label: threat, palette: palette)
+            compareButton(label: compare, palette: palette)
             if game.isTrying {
                 sandboxButtons(iconOnly: iconOnly, palette: palette)
             } else {
@@ -127,6 +141,38 @@ struct CoachPanelView: View {
         .foregroundStyle(active ? palette.danger : palette.chipText)
         .disabled(!game.canShowThreat && !active)
         .opacity(game.canShowThreat || active ? 1 : 0.4)
+    }
+
+    private func compareButton(label: ThreatLabel, palette: BoardPalette) -> some View {
+        let active = game.candidatesVisible
+        let tint = palette.arrow(.hint)
+        return Button {
+            game.toggleCandidates()
+        } label: {
+            Group {
+                switch label {
+                case .full:
+                    Label("Compare moves", systemImage: "list.number")
+                        .labelStyle(.titleAndIcon)
+                case .short:
+                    Label("Compare", systemImage: "list.number")
+                        .labelStyle(.titleAndIcon)
+                case .icon:
+                    Image(systemName: "list.number").accessibilityLabel(Text("Compare moves"))
+                }
+            }
+            .font(.footnote.weight(.semibold))
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(active ? tint.opacity(0.22) : palette.chipFill)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(active ? palette.primaryText : palette.chipText)
+        .disabled(!game.canCompare && !active)
+        .opacity(game.canCompare || active ? 1 : 0.4)
     }
 
     private func sandboxButtons(iconOnly: Bool, palette: BoardPalette) -> some View {
@@ -193,6 +239,14 @@ struct CoachPanelView: View {
                 .foregroundStyle(palette.danger)
         } else if let message = threatMessage(palette: palette) {
             message
+        } else if let error = game.hintError {
+            Label(error, systemImage: "lightbulb.slash")
+                .foregroundStyle(palette.danger)
+        } else if game.isHintThinking {
+            Label("Thinking", systemImage: "lightbulb")
+                .foregroundStyle(palette.secondaryText)
+        } else if game.hintLevel > 0 {
+            hintMessage(palette: palette)
         } else if let note = game.sandbox?.lastNote {
             VStack(alignment: .leading, spacing: 3) {
                 // 标题和补充说明接在一起，窄屏自动折行。
@@ -274,24 +328,167 @@ struct CoachPanelView: View {
 
     private func hintMessage(palette: BoardPalette) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            switch game.hintLevel {
-            case 1:
-                Label("Try moving this piece", systemImage: "lightbulb.fill")
-            case 2:
-                Label("Try moving it to the marked square", systemImage: "lightbulb.fill")
-            default:
-                if let san = game.hintSAN {
-                    Label(String(localized: "Suggested move: \(san)", bundle: .localized), systemImage: "lightbulb.fill")
+            if let explanation = game.hintExplanation {
+                switch game.hintLevel {
+                case 1:
+                    Label("What to think about", systemImage: "lightbulb.fill")
                         .fontWeight(.semibold)
-                }
-                if game.hintLine.count > 1 {
-                    Text(String(localized: "Likely continuation: \(game.hintLine.dropFirst().joined(separator: " → "))", bundle: .localized))
-                        .foregroundStyle(palette.secondaryText)
-                        .lineLimit(2)
+                    Text(explanation.ideaText(keyPointShown: game.keyPointVisible && game.keyPoint != nil))
+                        .lineLimit(4)
+                        .minimumScaleFactor(0.9)
+                case 2:
+                    Label("Try moving the marked piece", systemImage: "lightbulb.fill")
+                        .fontWeight(.semibold)
+                    Text(explanation.pieceText)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.9)
+                default:
+                    if let san = game.hintSAN {
+                        Label(String(localized: "Suggested move: \(san)", bundle: .localized), systemImage: "lightbulb.fill")
+                            .fontWeight(.semibold)
+                    }
+                    Text(explanation.answerText)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.85)
+                    if let line = answerFooter() {
+                        Text(line)
+                            .foregroundStyle(palette.secondaryText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
                 }
             }
         }
         .foregroundStyle(palette.primaryText)
+    }
+
+    /// 「胜率 · 只有这一步」：走完这步的胜率；候选算好了再补上和其他走法的比较。
+    private func answerFooter() -> String? {
+        var parts: [String] = []
+        // 候选算好后用它的数字，和列表一致。
+        let matched = game.hint.flatMap { hint in
+            game.candidates?.candidates.first { $0.from == hint.0 && $0.to == hint.1 }?.winPercent
+        }
+        if let win = matched ?? game.hintWin {
+            let pct = "\(Int(win.rounded()))%"
+            parts.append(String(localized: "Win chances after this move: \(pct)", bundle: .localized))
+        }
+        if let set = game.candidates {
+            switch set.verdict {
+            case .onlyMove: parts.append(String(localized: "Only move", bundle: .localized))
+            case .severalGood: parts.append(String(localized: "Several good moves", bundle: .localized))
+            case .bestAhead: break
+            }
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    // MARK: - 候选走法
+
+    private func candidatePanel(palette: BoardPalette) -> some View {
+        let compact = !game.showsKeyPoints
+        return VStack(alignment: .leading, spacing: 2) {
+            if let set = game.candidates {
+                HStack(spacing: 6) {
+                    Image(systemName: "list.number")
+                        .foregroundStyle(palette.arrow(.hint))
+                    Text(verdictTitle(set.verdict))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(palette.primaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
+                }
+                ForEach(Array(set.candidates.enumerated()), id: \.element.id) { index, move in
+                    candidateRow(move, index: index, mover: set.mover, compact: compact, palette: palette)
+                }
+                candidateLine(set, palette: palette)
+            } else if let error = game.hintError {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(palette.danger)
+            } else {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Comparing the best moves…")
+                        .foregroundStyle(palette.secondaryText)
+                }
+            }
+        }
+    }
+
+    private func verdictTitle(_ verdict: CandidateVerdict) -> String {
+        switch verdict {
+        case .onlyMove: String(localized: "This is the only good move.", bundle: .localized)
+        case .severalGood: String(localized: "Several good moves. Pick the one you like.", bundle: .localized)
+        case .bestAhead: String(localized: "One move is a bit better than the rest.", bundle: .localized)
+        }
+    }
+
+    private func candidateRow(_ move: CandidateMove, index: Int, mover: Piece.Color, compact: Bool, palette: BoardPalette) -> some View {
+        let selected = game.selectedCandidate == index
+        let tint = palette.verdict(move.label.verdict)
+        let reason = move.reason(mover: mover)
+        return Button {
+            game.selectCandidate(index)
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 6) {
+                    Text(verbatim: move.san)
+                        .fontWeight(.bold)
+                        .foregroundStyle(palette.primaryText)
+                    Text(verbatim: "\(Int(move.winPercent.rounded()))%")
+                        .monospacedDigit()
+                        .foregroundStyle(palette.primaryText)
+                    if move.winDrop >= 1 {
+                        Text(verbatim: "(−\(Int(move.winDrop.rounded())))")
+                            .monospacedDigit()
+                            .foregroundStyle(palette.secondaryText)
+                    }
+                    Text(move.label.title)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(tint)
+                    if compact {
+                        Text(verbatim: reason)
+                            .font(.caption2)
+                            .foregroundStyle(palette.secondaryText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .lineLimit(1)
+                if !compact {
+                    Text(verbatim: reason)
+                        .font(.caption2)
+                        .foregroundStyle(palette.secondaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .padding(.horizontal, 6)
+            .background(selected ? palette.arrow(.hint).opacity(0.2) : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 选中那步的变例；没选时提示可以点。
+    @ViewBuilder
+    private func candidateLine(_ set: CandidateSet, palette: BoardPalette) -> some View {
+        Group {
+            if let index = game.selectedCandidate, set.candidates.indices.contains(index) {
+                let line = set.candidates[index].line.prefix(6).map(\.san).joined(separator: " → ")
+                Text(String(localized: "Line: \(line)", bundle: .localized))
+            } else {
+                Text("Tap a move to see it on the board.")
+            }
+        }
+        .font(.caption2)
+        .foregroundStyle(palette.secondaryText)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
     }
 
     private func feedbackMessage(_ feedback: MoveFeedback, palette: BoardPalette) -> some View {
