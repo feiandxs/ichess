@@ -15,6 +15,28 @@ bash scripts/download_stockfish_networks.sh
 随后用 Xcode 打开 `ichess/ichess.xcodeproj`，运行 `ichess` scheme。
 两份 Stockfish NNUE 文件约 75 MiB，下载后校验 SHA-256，由 Xcode 随应用打包；不提交到 Git，使用提示时无需联网。
 
+## 发布（macOS）
+
+`scripts/release_mac.sh` 一条命令完成通用二进制（x86_64 + arm64）归档、Developer ID 签名、公证、装订并打包为 zip。最终 zip 输出到 `~/Downloads`（可用环境变量 `OUTPUT_DIR` 修改），中间产物位于 `dist/`（已被 .gitignore 忽略）。
+
+```sh
+scripts/release_mac.sh                       # public：默认，从干净的 main 构建，可分享
+scripts/release_mac.sh --variant public --ref <分支或标签>
+scripts/release_mac.sh --variant personal    # personal：从当前工作目录构建，含本地 Chess.com 素材
+scripts/release_mac.sh --skip-notarize       # 只签名不公证
+```
+
+- public：通过临时 `git worktree` 构建指定 ref，从本机复制被忽略的 `.nnue`（缺失时报错，先执行 `scripts/download_stockfish_networks.sh`），并断言应用包内没有 Chess.com 素材或 `catalog.local.json`。输出 `~/Downloads/NookChess-<版本>-<构建号>.zip`，内含应用与中英文 GPL-3.0 / 第三方说明 README。
+- personal：包含本地 Chess.com 素材，仅供自己的机器使用，**绝不可分享、上传或发布**。输出 `~/Downloads/NookChess-<版本>-<构建号>-personal.zip`。
+
+首次公证前需一次性保存凭据（使用 appleid.apple.com 生成的 App 专用密码）：
+
+```sh
+xcrun notarytool store-credentials nook-notary --apple-id <邮箱> --team-id Z852QM89N4
+```
+
+可用环境变量 `NOTARY_PROFILE` 指定其他 profile 名。凭据缺失时脚本在签名后停止，已签名未公证的应用留在 `dist/<variant>/export/`。
+
 ## 提示
 
 通过 [ChessKitEngine](https://github.com/chesskit-app/chesskit-engine) 调用 Stockfish 17，固定最大深度 15、搜索时间上限 1000 ms、单线程，不随玩家积分降低强度。引擎初始化另需时间。提示显示推荐走法的起点和终点，不提供送子警告或文字解释。
