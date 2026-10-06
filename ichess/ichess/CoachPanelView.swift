@@ -27,15 +27,22 @@ struct CoachPanelView: View {
     var body: some View {
         let palette = theme.palette
         VStack(alignment: .leading, spacing: 8) {
-            controlRow(palette: palette)
-            if game.candidatesVisible {
-                // 候选列表占住说明区 + 重点提醒的位置，总高度不变，棋盘不会跳。
-                candidatePanel(palette: palette)
+            if let demo = game.demo {
+                demoControlRow(demo, palette: palette)
+                // 演示占住说明区 + 重点提醒的位置，总高度不变，棋盘不会跳。
+                demoMessage(demo, palette: palette)
                     .frame(maxWidth: .infinity, minHeight: candidateZoneHeight, maxHeight: candidateZoneHeight, alignment: .topLeading)
             } else {
-                message(palette: palette)
-                    .frame(maxWidth: .infinity, minHeight: lineHeight * 5, maxHeight: lineHeight * 5, alignment: .topLeading)
-                keyPointRow(palette: palette)
+                controlRow(palette: palette)
+                if game.candidatesVisible {
+                    // 候选列表占住说明区 + 重点提醒的位置，总高度不变，棋盘不会跳。
+                    candidatePanel(palette: palette)
+                        .frame(maxWidth: .infinity, minHeight: candidateZoneHeight, maxHeight: candidateZoneHeight, alignment: .topLeading)
+                } else {
+                    message(palette: palette)
+                        .frame(maxWidth: .infinity, minHeight: lineHeight * 5, maxHeight: lineHeight * 5, alignment: .topLeading)
+                    keyPointRow(palette: palette)
+                }
             }
             footer(palette: palette)
                 .frame(maxWidth: .infinity, minHeight: footerHeight, maxHeight: footerHeight, alignment: .leading)
@@ -48,13 +55,17 @@ struct CoachPanelView: View {
         .font(.footnote)
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(game.isTrying ? palette.sandbox.opacity(0.12) : palette.chipFill)
+        .background(game.isDemoing ? palette.demo.opacity(0.12) : (game.isTrying ? palette.sandbox.opacity(0.12) : palette.chipFill))
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(palette.sandbox.opacity(game.isTrying ? 0.9 : 0), lineWidth: 1.5)
+                .strokeBorder(
+                    (game.isDemoing ? palette.demo : palette.sandbox).opacity(game.isTrying || game.isDemoing ? 0.9 : 0),
+                    lineWidth: 1.5
+                )
         }
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .animation(.easeOut(duration: 0.15), value: game.isTrying)
+        .animation(.easeOut(duration: 0.15), value: game.isDemoing)
         .sheet(isPresented: $showInfo) {
             VerdictInfoView()
         }
@@ -300,9 +311,15 @@ struct CoachPanelView: View {
         }
         if let threat = game.threat {
             return AnyView(VStack(alignment: .leading, spacing: 3) {
-                Label("Your opponent’s threat", systemImage: "eye")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(palette.danger)
+                HStack(spacing: 6) {
+                    Label("Your opponent’s threat", systemImage: "eye")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(palette.danger)
+                    Spacer(minLength: 0)
+                    if game.canDemoThreat {
+                        demoChip(palette: palette) { game.startThreatDemo() }
+                    }
+                }
                 Text(threat.text)
                     .foregroundStyle(palette.primaryText)
                     .lineLimit(4)
@@ -344,8 +361,14 @@ struct CoachPanelView: View {
                         .minimumScaleFactor(0.9)
                 default:
                     if let san = game.hintSAN {
-                        Label(String(localized: "Suggested move: \(san)", bundle: .localized), systemImage: "lightbulb.fill")
-                            .fontWeight(.semibold)
+                        HStack(spacing: 6) {
+                            Label(String(localized: "Suggested move: \(san)", bundle: .localized), systemImage: "lightbulb.fill")
+                                .fontWeight(.semibold)
+                            Spacer(minLength: 0)
+                            if game.canDemoHint {
+                                demoChip(palette: palette) { game.startHintDemo() }
+                            }
+                        }
                     }
                     Text(explanation.answerText)
                         .lineLimit(3)
@@ -383,6 +406,109 @@ struct CoachPanelView: View {
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
+    // MARK: - 走法演示
+
+    /// 「演示」小按钮：高度和一行字一样，不撑高说明区。
+    private func demoChip(palette: BoardPalette, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label("Show line", systemImage: "play.fill")
+                .labelStyle(.titleAndIcon)
+                .font(.caption2.weight(.bold))
+                .lineLimit(1)
+                .fixedSize()
+                .padding(.horizontal, 8)
+                .frame(height: lineHeight)
+                .background(palette.demo.opacity(0.18))
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(palette.demo)
+    }
+
+    private func demoControlRow(_ demo: LineDemo, palette: BoardPalette) -> some View {
+        HStack(spacing: 8) {
+            Label("Demo \(demo.index)/\(demo.count)", systemImage: "play.rectangle.fill")
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(palette.demo)
+                .lineLimit(1)
+                .fixedSize()
+            Spacer(minLength: 4)
+            Button {
+                game.exitDemo()
+            } label: {
+                Label("Exit", systemImage: "xmark")
+                    .labelStyle(.titleAndIcon)
+                    .font(.footnote.weight(.semibold))
+                    .lineLimit(1)
+                    .fixedSize()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(palette.chipFill)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(palette.chipText)
+            .keyboardShortcut(.cancelAction)
+        }
+        .frame(minHeight: footerHeight)
+    }
+
+    /// 当前这步的说明（醒目）+ 上一步（变淡，放得下才显示）；走到头再加一句总结。
+    private func demoMessage(_ demo: LineDemo, palette: BoardPalette) -> some View {
+        ViewThatFits(in: .vertical) {
+            DemoCaptionsView(demo: demo, showsPrevious: true, palette: palette)
+            DemoCaptionsView(demo: demo, showsPrevious: false, palette: palette)
+        }
+    }
+
+    /// ⏮ ◀ ▶：▶ 是主按钮，占剩下的宽度。
+    private func demoFooter(_ demo: LineDemo, palette: BoardPalette) -> some View {
+        let nextTitle: LocalizedStringKey = demo.isAtEnd ? "End of line" : "Next"
+        return HStack(spacing: 6) {
+            demoNavButton("backward.end.fill", label: "Start of line", disabled: !demo.canBack, palette: palette) {
+                game.demoStart()
+            }
+            demoNavButton("chevron.left", label: "Previous step", disabled: !demo.canBack, palette: palette) {
+                game.demoBack()
+            }
+            .keyboardShortcut(.leftArrow, modifiers: [])
+            Button {
+                game.demoNext()
+            } label: {
+                Label(nextTitle, systemImage: demo.isAtEnd ? "checkmark" : "play.fill")
+                    .labelStyle(.titleAndIcon)
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .foregroundStyle(.white)
+                    .background(palette.demo)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(.rightArrow, modifiers: [])
+            .disabled(!demo.canNext)
+            .opacity(demo.canNext ? 1 : 0.55)
+        }
+    }
+
+    private func demoNavButton(
+        _ symbol: String, label: LocalizedStringKey, disabled: Bool, palette: BoardPalette, action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.footnote.weight(.semibold))
+                .frame(width: 44)
+                .frame(maxHeight: .infinity)
+                .background(palette.chipFill)
+                .clipShape(Capsule())
+                .accessibilityLabel(Text(label))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(palette.chipText)
+        .disabled(disabled)
+        .opacity(disabled ? 0.4 : 1)
+    }
+
     // MARK: - 候选走法
 
     private func candidatePanel(palette: BoardPalette) -> some View {
@@ -398,6 +524,9 @@ struct CoachPanelView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     Spacer(minLength: 0)
+                    if game.canDemoCandidate {
+                        demoChip(palette: palette) { game.startCandidateDemo() }
+                    }
                 }
                 ForEach(Array(set.candidates.enumerated()), id: \.element.id) { index, move in
                     candidateRow(move, index: index, mover: set.mover, compact: compact, palette: palette)
@@ -550,7 +679,9 @@ struct CoachPanelView: View {
 
     @ViewBuilder
     private func footer(palette: BoardPalette) -> some View {
-        if game.isTrying {
+        if let demo = game.demo {
+            demoFooter(demo, palette: palette)
+        } else if game.isTrying {
             Button {
                 game.playSandboxMove()
             } label: {

@@ -21,6 +21,7 @@ struct PlayedMove: Equatable, Identifiable {
 final class ChessGameStore: ObservableObject {
     @Published private(set) var board = Board() {
         didSet {
+            demo = nil
             clearHint()
             refreshSafety()
             invalidateThreat()
@@ -45,6 +46,10 @@ final class ChessGameStore: ObservableObject {
     /// 前三名候选走法；只在当前局面有效，局面一变就清除。
     @Published private(set) var candidates: CandidateSet?
     @Published private(set) var isCandidatesThinking = false
+    /// 走法演示；非 nil 时棋盘显示演示局面（只读副本），真实对局和试走沙盒都不动。
+    @Published private(set) var demo: LineDemo?
+    /// 提示那步的变例（逐步），演示用。
+    private var hintSteps: [CandidateStep] = []
     /// 候选列表正在显示（替换说明区）。
     @Published private(set) var candidatesVisible = false
     /// 点中的候选（箭头和变例跟着它）。
@@ -68,6 +73,7 @@ final class ChessGameStore: ObservableObject {
     @Published private(set) var activeMode: GameMode = .practice {
         didSet {
             if !activeMode.allowsAids {
+                demo = nil
                 exitSandbox()
                 cancelFeedback()
                 invalidateThreat()
@@ -133,6 +139,7 @@ final class ChessGameStore: ObservableObject {
     /// 试走沙盒；非 nil 表示正在试走，棋盘显示的是沙盒局面。
     @Published private(set) var sandbox: SandboxState? {
         didSet {
+            demo = nil
             clearHint()
             refreshSafety()
             invalidateThreat()
@@ -202,17 +209,23 @@ final class ChessGameStore: ObservableObject {
     // 棋盘实际显示的内容：试走时是沙盒，否则是真实对局。
     var isTrying: Bool { sandbox != nil }
     var shownBoard: Board { sandbox?.board ?? board }
-    var shownPlayed: PlayedMove? { isTrying ? sandbox?.plies.last?.played : lastPlayed }
+    var isDemoing: Bool { demo != nil }
+    /// 棋盘画出来的局面：演示时是演示局面，否则同 shownBoard（操作都针对 shownBoard）。
+    var displayBoard: Board { demo?.board ?? shownBoard }
+    var shownPlayed: PlayedMove? {
+        if let demo { return demo.lastPlayed }
+        return isTrying ? sandbox?.plies.last?.played : lastPlayed
+    }
     var shownLastMove: (Square, Square)? { shownPlayed.map { ($0.from, $0.to) } }
 
     var legalTargets: Set<Square> {
-        guard let selected, !isEngineThinking, !isSandboxThinking else { return [] }
+        guard let selected, !isEngineThinking, !isSandboxThinking, demo == nil else { return [] }
         return Set(shownBoard.legalMoves(forPieceAt: selected))
     }
 
     /// 分级提示要高亮的格子。
     var hintSquares: Set<Square> {
-        guard let hint else { return [] }
+        guard let hint, demo == nil else { return [] }
         switch hintLevel {
         case 0, 1: return []
         case 2: return [hint.0]
@@ -221,6 +234,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var arrows: [BoardArrow] {
+        if let demo { return demo.arrow.map { [$0] } ?? [] }
         let base = baseArrows
         guard let threat else { return base }
         return base + [BoardArrow(from: threat.from, to: threat.to, style: .threat)]
@@ -260,7 +274,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var canTry: Bool {
-        activeMode.allowsAids && hasChosenDifficulty && !isGameOver && pendingPromotion == nil
+        demo == nil && activeMode.allowsAids && hasChosenDifficulty && !isGameOver && pendingPromotion == nil
             && sideToMove == playerColor && !isEngineThinking
     }
     var canSandboxBack: Bool { sandbox?.plies.isEmpty == false }
@@ -282,11 +296,11 @@ final class ChessGameStore: ObservableObject {
     }
 
     var canHint: Bool {
-        activeMode.allowsAids && hintLevel < 3 && hasChosenDifficulty && !isHintThinking && canActOnShown
+        demo == nil && activeMode.allowsAids && hintLevel < 3 && hasChosenDifficulty && !isHintThinking && canActOnShown
     }
 
     var canCompare: Bool {
-        activeMode.allowsAids && hasChosenDifficulty && canActOnShown
+        demo == nil && activeMode.allowsAids && hasChosenDifficulty && canActOnShown
     }
 
     var isGameOver: Bool {
@@ -402,6 +416,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var statusText: String {
+        if isDemoing { return String(localized: "Line demo", bundle: .localized) }
         if isTrying { return String(localized: "Trying moves", bundle: .localized) }
         if hasResigned { return String(localized: "You resigned · You lost", bundle: .localized) }
         if isEngineThinking { return String(localized: "Computer is thinking", bundle: .localized) }
@@ -426,10 +441,15 @@ final class ChessGameStore: ObservableObject {
     }
 
     func piece(at square: Square) -> Piece? {
-        shownBoard.position.piece(at: square)
+        displayBoard.position.piece(at: square)
     }
 
     func tap(_ square: Square) {
+        // 演示中点棋盘 = 下一步。
+        if demo != nil {
+            demoNext()
+            return
+        }
         guard hasChosenDifficulty else { return }
         if pendingPromotion != nil || isGameOver || isEngineThinking { return }
         guard sideToMove == playerColor else { return }
@@ -495,6 +515,7 @@ final class ChessGameStore: ObservableObject {
                 hint = (applied.played.start, applied.played.end)
                 hintUCI = uci
                 hintSAN = applied.final.san
+                hintSteps = CandidateSet.steps(pv: analysis.pv.first == uci ? analysis.pv : [uci], from: snapshot)
                 hintLine = analysis.pv.first == uci
                     ? MoveExplainer.sanLine(pv: analysis.pv, from: snapshot, limit: 4)
                     : [applied.final.san]
@@ -575,6 +596,76 @@ final class ChessGameStore: ObservableObject {
                 hintError = error.localizedDescription
             }
         }
+    }
+
+    // MARK: - 走法演示
+
+    /// 点哪里进来都一样：只读副本，一步一步走，真实对局和沙盒不动。
+    private func beginDemo(root: Board, steps: [CandidateStep], win: Double?) {
+        guard demo == nil, let line = LineDemo(root: root, steps: steps, viewer: playerColor, winEnd: win) else { return }
+        selected = nil
+        shouldAnimateLastMove = false
+        demo = line
+    }
+
+    /// 候选列表里选中的那步（没选就第一名）。
+    var canDemoCandidate: Bool {
+        guard demo == nil, candidatesVisible, let set = candidates else { return false }
+        return set.candidates[min(selectedCandidate ?? 0, set.candidates.count - 1)].line.isEmpty == false
+    }
+
+    func startCandidateDemo() {
+        guard canDemoCandidate, let set = candidates else { return }
+        let move = set.candidates[min(selectedCandidate ?? 0, set.candidates.count - 1)]
+        beginDemo(root: shownBoard, steps: move.line, win: move.winPercent)
+    }
+
+    /// 提示答案那步的变例；候选已算好就用同一步的候选线。
+    var canDemoHint: Bool { demo == nil && hintLevel >= 3 && !hintSteps.isEmpty }
+
+    func startHintDemo() {
+        guard canDemoHint, let uci = hintUCI else { return }
+        let match = candidates?.candidates.first { $0.uci == uci }
+        let steps = match.map(\.line).flatMap { $0.isEmpty ? nil : $0 } ?? hintSteps
+        beginDemo(root: shownBoard, steps: steps, win: match?.winPercent ?? hintWin)
+    }
+
+    /// 对方想干什么：从空着后的局面演示对方的这条线。
+    var canDemoThreat: Bool { demo == nil && threat?.line.isEmpty == false && threat?.rootFEN != nil }
+
+    func startThreatDemo() {
+        guard canDemoThreat, let threat, let fen = threat.rootFEN, let position = Position(fen: fen) else { return }
+        beginDemo(root: Board(position: position), steps: threat.line, win: threat.viewerWin)
+    }
+
+    /// 前进一步，带飞行动画。
+    func demoNext() {
+        guard var line = demo, line.next() else { return }
+        shouldAnimateLastMove = true
+        demo = line
+    }
+
+    func demoBack() {
+        guard var line = demo, line.back() else { return }
+        shouldAnimateLastMove = false
+        demo = line
+    }
+
+    func demoStart() {
+        guard var line = demo, line.canBack else { return }
+        line.start()
+        shouldAnimateLastMove = false
+        demo = line
+    }
+
+    /// 退出演示，回到进来之前的样子（候选列表、选中的候选、沙盒都还在）。
+    func exitDemo() {
+        guard demo != nil else { return }
+        demo = nil
+        shouldAnimateLastMove = false
+        selected = nil
+        refreshSafety()
+        refreshKeyPoint()
     }
 
     func undo() {
@@ -1070,7 +1161,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     var canShowThreat: Bool {
-        activeMode.allowsAids && hasChosenDifficulty && !isGameOver && pendingPromotion == nil
+        demo == nil && activeMode.allowsAids && hasChosenDifficulty && !isGameOver && pendingPromotion == nil
             && shownBoard.position.sideToMove == playerColor
             && !isEngineThinking && !isSandboxThinking && !opponentMoveAnimating
     }
@@ -1290,9 +1381,11 @@ final class ChessGameStore: ObservableObject {
         hintUCI = nil
         hintSAN = nil
         hintLine = []
+        hintSteps = []
         hintLevel = 0
         hintExplanation = nil
         hintWin = nil
+        if demo != nil { demo = nil }
         if candidates != nil { candidates = nil }
         if isCandidatesThinking { isCandidatesThinking = false }
         if candidatesVisible { candidatesVisible = false }
@@ -1559,6 +1652,47 @@ extension ChessGameStore {
                         toggleCandidates()
                         try? await Task.sleep(for: .seconds(2))
                         if preset == "cand2" { selectCandidate(1) }
+                    }
+                }
+            }
+        case "demo0", "demo1", "demo2", "demoend", "demo1-sb", "demoend-sb", "demohint", "demothreat", "demoexit":
+            // 走法演示：摆好局面、算出候选 / 提示 / 对方想干什么，进入演示再按步数点「下一步」。
+            let isThreat = preset == "demothreat"
+            let fen = UserDefaults.standard.string(forKey: "nookchess.debugFEN")
+                ?? (isThreat
+                    ? "r1b1kbnr/pppp1ppp/8/4N1q1/2BnP3/8/PPPP1PPP/RNBQK2R w KQkq - 3 5"
+                    : "rnbqkbnr/pppp1ppp/8/4p3/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 0 2")
+            debugSetPosition(fen)
+            let sandboxed = preset.hasSuffix("-sb")
+            if sandboxed {
+                setTrying(true)
+                sandboxPlay(from: Square("d2"), to: Square("d4"))
+            }
+            let steps = ["demo0": 0, "demo1": 1, "demo2": 2, "demo1-sb": 1, "demohint": 2, "demothreat": 2, "demoexit": 2][preset] ?? 99
+            DispatchQueue.main.asyncAfter(deadline: .now() + (sandboxed ? 4 : 1.5)) { [self] in
+                Task {
+                    if preset == "demohint" {
+                        for _ in 0..<3 {
+                            showHint()
+                            try? await Task.sleep(for: .seconds(1.5))
+                        }
+                        startHintDemo()
+                    } else if isThreat {
+                        showThreat()
+                        try? await Task.sleep(for: .seconds(2))
+                        startThreatDemo()
+                    } else {
+                        toggleCandidates()
+                        try? await Task.sleep(for: .seconds(2.5))
+                        startCandidateDemo()
+                    }
+                    for _ in 0..<steps where demo?.canNext == true {
+                        try? await Task.sleep(for: .seconds(1.2))
+                        demoNext()
+                    }
+                    if preset == "demoexit" {
+                        try? await Task.sleep(for: .seconds(1.5))
+                        exitDemo()
                     }
                 }
             }

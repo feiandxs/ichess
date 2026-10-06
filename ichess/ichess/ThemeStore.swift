@@ -171,6 +171,11 @@ struct BoardPalette {
         isDark ? Color(red: 0.68, green: 0.58, blue: 1.0) : Color(red: 0.45, green: 0.30, blue: 0.85)
     }
 
+    /// 走法演示的强调色：边框、染色、标签、箭头。
+    var demo: Color {
+        isDark ? Color(red: 0.30, green: 0.80, blue: 0.78) : Color(red: 0.03, green: 0.52, blue: 0.58)
+    }
+
     /// 棋盘箭头：更好的走法（蓝）、提示（琥珀）、对方的应对 / 威胁（红）、对手上一步（绿）。
     func arrow(_ style: BoardArrow.Style) -> Color {
         switch style {
@@ -180,6 +185,8 @@ struct BoardPalette {
             isDark ? Color(red: 1.0, green: 0.72, blue: 0.20) : Color(red: 0.95, green: 0.58, blue: 0.05)
         case .reply, .threat:
             danger
+        case .demo:
+            demo
         case .opponent:
             isDark ? Color(red: 0.50, green: 0.88, blue: 0.38) : Color(red: 0.20, green: 0.62, blue: 0.12)
         }

@@ -3074,6 +3074,466 @@
           }
         }
       }
+    },
+    "Line demo": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走法演示"
+          }
+        }
+      }
+    },
+    "You": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你"
+          }
+        }
+      }
+    },
+    "Opponent": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方"
+          }
+        }
+      }
+    },
+    "%@%@: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@%2$@：%3$@"
+          }
+        }
+      }
+    },
+    "%@, %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，%2$@"
+          }
+        }
+      }
+    },
+    "Castles (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "王车易位（%@）"
+          }
+        }
+      }
+    },
+    "Pawn promotes to a %@ on %@ (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兵在 %2$@ 升变为%1$@（%3$@）"
+          }
+        }
+      }
+    },
+    "%@ takes the %@ on %@ (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@吃 %3$@ 的%2$@（%4$@）"
+          }
+        }
+      }
+    },
+    "%@ to %@ (%@)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@到 %2$@（%3$@）"
+          }
+        }
+      }
+    },
+    "checkmate!": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将死！"
+          }
+        }
+      }
+    },
+    "check": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将军"
+          }
+        }
+      }
+    },
+    "wins a %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赢一个%@"
+          }
+        }
+      }
+    },
+    "an even trade": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等价交换"
+          }
+        }
+      }
+    },
+    "attacks the %@ and the %@ at once": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时攻击%1$@和%2$@"
+          }
+        }
+      }
+    },
+    "pins the %@ on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "牵制了 %2$@ 的%1$@"
+          }
+        }
+      }
+    },
+    "attacks the %@ on %@, with the %@ behind it": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻击 %2$@ 的%1$@，它身后是%3$@"
+          }
+        }
+      }
+    },
+    "threatens the %@ on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "威胁 %2$@ 的%1$@"
+          }
+        }
+      }
+    },
+    "threatens checkmate next move": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "威胁下一步杀棋"
+          }
+        }
+      }
+    },
+    "stops the checkmate threat": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挡住了杀棋威胁"
+          }
+        }
+      }
+    },
+    "gets out of check": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解除了将军"
+          }
+        }
+      }
+    },
+    "moves the %@ to safety": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把%@带到了安全的地方"
+          }
+        }
+      }
+    },
+    "protects the %@ on %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保住了 %2$@ 的%1$@"
+          }
+        }
+      }
+    },
+    "deals with the threat": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "化解了威胁"
+          }
+        }
+      }
+    },
+    "develops the %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出动%@"
+          }
+        }
+      }
+    },
+    "stakes a claim in the center": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "占据中心"
+          }
+        }
+      }
+    },
+    "controls the center": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "控制中心"
+          }
+        }
+      }
+    },
+    "This line ends with you checkmating your opponent.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条线以你将死对方结束。"
+          }
+        }
+      }
+    },
+    "This line ends with your opponent checkmating you.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条线以对方将死你结束。"
+          }
+        }
+      }
+    },
+    "End of the line: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条线走完：%@"
+          }
+        }
+      }
+    },
+    "End of the line: %@, win chances about %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条线走完：%1$@，胜率约 %2$@"
+          }
+        }
+      }
+    },
+    "material is even": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "子力相当"
+          }
+        }
+      }
+    },
+    "you are up %lld points of material": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你多 %lld 分子力"
+          }
+        }
+      }
+    },
+    "your opponent is up %lld points of material": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方多 %lld 分子力"
+          }
+        }
+      }
+    },
+    "you are up a %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你多一个%@"
+          }
+        }
+      }
+    },
+    "your opponent is up a %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方多一个%@"
+          }
+        }
+      }
+    },
+    "you are up a %@ and a %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你多一个%1$@和一个%2$@"
+          }
+        }
+      }
+    },
+    "your opponent is up a %@ and a %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方多一个%1$@和一个%2$@"
+          }
+        }
+      }
+    },
+    "Show line": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "演示"
+          }
+        }
+      }
+    },
+    "Demo %lld/%lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "演示 %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Exit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        }
+      }
+    },
+    "Start of line": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到开头"
+          }
+        }
+      }
+    },
+    "Previous step": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一步"
+          }
+        }
+      }
+    },
+    "Next": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一步"
+          }
+        }
+      }
+    },
+    "End of line": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走完了"
+          }
+        }
+      }
+    },
+    "Showing %@ and what could follow, one move at a time (%lld in all). Tap Next to play each move.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "演示 %1$@ 和之后可能的走法，一次一步（共 %2$lld 步）。每点一下「下一步」走一步。"
+          }
+        }
+      }
+    },
+    "takes it back": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "吃回来"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

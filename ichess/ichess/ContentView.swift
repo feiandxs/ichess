@@ -221,6 +221,8 @@ struct ContentView: View {
     }
 
     private func show(_ new: AppPage?) {
+        // 打开整页时先收起演示，避免演示的方向键 / Esc 和复盘页抢。
+        if new != nil { game.exitDemo() }
         withAnimation(.easeOut(duration: 0.2)) { page = new }
     }
 

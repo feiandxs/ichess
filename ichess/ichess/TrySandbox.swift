@@ -27,9 +27,9 @@ struct SandboxState {
     var firstMove: PlayedMove? { plies.first(where: { !$0.isReply })?.played }
 }
 
-/// 棋盘上的箭头：更好的走法、提示、试走里对方的应对。
+/// 棋盘上的箭头：更好的走法、提示、试走里对方的应对、演示里刚走的一步。
 struct BoardArrow: Equatable, Identifiable {
-    enum Style { case better, hint, reply, opponent, threat }
+    enum Style { case better, hint, reply, opponent, threat, demo }
 
     let from: Square
     let to: Square

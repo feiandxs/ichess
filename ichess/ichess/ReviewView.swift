@@ -51,6 +51,8 @@ struct ReviewView: View {
     @EnvironmentObject private var theme: ThemeStore
     @State private var ply = 0
     @State private var didSetup = false
+    /// 正在分步演示的引擎变例（复盘棋盘显示它）；换一步就收起。
+    @State private var demo: LineDemo?
 
     var body: some View {
         let palette = theme.palette
@@ -67,6 +69,7 @@ struct ReviewView: View {
         }
         .background(palette.canvas.ignoresSafeArea())
         .onAppear(perform: setup)
+        .onChange(of: ply) { _, _ in demo = nil }
     }
 
     private func setup() {
@@ -139,6 +142,16 @@ struct ReviewView: View {
     // MARK: - 棋盘与控制
 
     private func board(_ record: GameRecord, ply: Int, side: CGFloat) -> some View {
+        if let demo {
+            return StaticBoardView(
+                position: demo.board.position,
+                lastMove: demo.lastStep.map { ($0.from, $0.to) },
+                checkedKing: ReviewSupport.checkedKing(in: demo.board.position, san: demo.lastStep?.san),
+                arrows: demo.arrow.map { [$0] } ?? [],
+                accent: theme.palette.demo
+            )
+            .frame(width: side, height: side)
+        }
         let position = Position(fen: record.fen(atPly: ply)) ?? Position.standard
         let move = ply > 0 ? record.moves[ply - 1] : nil
         var lastMove: (Square, Square)?
@@ -157,16 +170,42 @@ struct ReviewView: View {
         .frame(width: side, height: side)
     }
 
+    /// 演示中的控制条：⏮ ◀ ▶（主按钮）退出。
+    private func demoControls(_ line: LineDemo, palette: BoardPalette) -> some View {
+        HStack(spacing: 10) {
+            navButton("backward.end.fill", label: "Start of line", disabled: !line.canBack, palette: palette) { demo?.start() }
+            navButton("chevron.left", label: "Previous step", disabled: !line.canBack, palette: palette) { demo?.back() }
+                .keyboardShortcut(.leftArrow, modifiers: [])
+            Button {
+                demo?.next()
+            } label: {
+                Image(systemName: line.canNext ? "play.fill" : "checkmark")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .foregroundStyle(.white)
+                    .background(palette.demo)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .accessibilityLabel(Text("Next"))
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(.rightArrow, modifiers: [])
+            .disabled(!line.canNext)
+            .opacity(line.canNext ? 1 : 0.4)
+            navButton("xmark", label: "Exit", disabled: false, palette: palette) { demo = nil }
+        }
+    }
+
     private func controls(_ record: GameRecord, palette: BoardPalette) -> some View {
         let last = record.moves.count
-        return HStack(spacing: 10) {
+        if let demo { return AnyView(demoControls(demo, palette: palette)) }
+        return AnyView(HStack(spacing: 10) {
             navButton("backward.end.fill", label: "First move", disabled: ply == 0, palette: palette) { ply = 0 }
             navButton("chevron.left", label: "Previous move", disabled: ply == 0, palette: palette) { ply -= 1 }
                 .keyboardShortcut(.leftArrow, modifiers: [])
             navButton("chevron.right", label: "Next move", disabled: ply >= last, palette: palette) { ply += 1 }
                 .keyboardShortcut(.rightArrow, modifiers: [])
             navButton("forward.end.fill", label: "Last move", disabled: ply >= last, palette: palette) { ply = last }
-        }
+        })
     }
 
     private func navButton(
@@ -329,7 +368,14 @@ struct ReviewView: View {
     private func detail(_ record: GameRecord, _ report: GameAnalysis.Report, ply: Int, palette: BoardPalette) -> some View {
         card(palette) {
             VStack(alignment: .leading, spacing: 4) {
-                if ply == 0 {
+                if let demo {
+                    Label("Demo \(demo.index)/\(demo.count)", systemImage: "play.rectangle.fill")
+                        .font(.subheadline.weight(.bold))
+                        .monospacedDigit()
+                        .foregroundStyle(palette.demo)
+                    DemoCaptionsView(demo: demo, palette: palette)
+                        .font(.footnote)
+                } else if ply == 0 {
                     Text("Starting position")
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(palette.primaryText)
@@ -349,7 +395,7 @@ struct ReviewView: View {
                         }
                     }
                 }
-                if let text = ReviewSupport.evalText(record.evals[ply], ply: ply) {
+                if demo == nil, let text = ReviewSupport.evalText(record.evals[ply], ply: ply) {
                     Text("Evaluation: \(text)")
                         .font(.footnote)
                         .foregroundStyle(palette.secondaryText)
@@ -376,6 +422,21 @@ struct ReviewView: View {
                 Text("Engine line: \(line.joined(separator: " → "))")
                     .font(.footnote)
                     .foregroundStyle(palette.secondaryText)
+                if let lineDemo = ReviewSupport.engineDemo(record: record, index: index) {
+                    Button {
+                        demo = lineDemo
+                    } label: {
+                        Label("Show line", systemImage: "play.fill")
+                            .labelStyle(.titleAndIcon)
+                            .font(.footnote.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(palette.demo.opacity(0.18))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(palette.demo)
+                }
             }
         } else {
             Text("Your move \(label)")

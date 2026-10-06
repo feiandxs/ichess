@@ -255,7 +255,13 @@ enum CoachExplainer {
         }
         var mateIn: Int?
         if move.checkState != .checkmate, case let .mate(n) = analysis.score, n >= 2 { mateIn = n }
-        return OpponentThreat(from: move.start, to: move.end, san: move.san, kind: kind, followUp: followUp, mateIn: mateIn)
+        // 演示用：对方的这条变例（从空着后的局面起）和走完后玩家的胜率。
+        let pv = analysis.pv.first == analysis.bestMove ? analysis.pv : [analysis.bestMove]
+        return OpponentThreat(
+            from: move.start, to: move.end, san: move.san, kind: kind, followUp: followUp, mateIn: mateIn,
+            line: CandidateSet.steps(pv: pv, from: board), rootFEN: board.position.fen,
+            viewerWin: analysis.score.map { 100 - MoveClassifier.winPercent($0) }
+        )
     }
 }
 
@@ -281,6 +287,11 @@ struct OpponentThreat: Equatable {
     let followUp: CoachFinding?
     /// 对方几步内能将死（至少 2 步）。
     let mateIn: Int?
+    /// 对方的变例（含第一步）和它所在的局面（空着后、对方走子），演示用；将军这类没有搜索的为空。
+    var line: [CandidateStep] = []
+    var rootFEN: String?
+    /// 走完这条线后玩家的胜率（0...100）。
+    var viewerWin: Double?
 
     var text: String {
         func name(_ kind: Piece.Kind) -> String { kind.localizedName.lowercased() }

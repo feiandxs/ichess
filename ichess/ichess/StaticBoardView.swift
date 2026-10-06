@@ -15,6 +15,8 @@ struct StaticBoardView: View {
     var lastMove: (Square, Square)?
     var checkedKing: Square?
     var arrows: [BoardArrow] = []
+    /// 演示时的强调色：加粗边框并淡淡染色。
+    var accent: Color?
 
     var body: some View {
         let palette = theme.palette
@@ -47,12 +49,16 @@ struct StaticBoardView: View {
                 BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
                     .allowsHitTesting(false)
             }
+            if let accent {
+                accent.opacity(0.08)
+                    .allowsHitTesting(false)
+            }
         }
         .frame(width: side, height: side, alignment: .topLeading)
         .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
-                .strokeBorder(palette.boardBorder, lineWidth: 1.5)
+                .strokeBorder(accent ?? palette.boardBorder, lineWidth: accent == nil ? 1.5 : 4)
         }
     }
 

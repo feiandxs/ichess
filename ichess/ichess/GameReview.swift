@@ -51,6 +51,18 @@ enum ReviewSupport {
         return MoveExplainer.sanLine(pv: pv, from: Board(position: position), limit: 5)
     }
 
+    /// 演示用：这步之前的局面里引擎推荐的变例（逐步），和走完整条线后玩家的胜率。没有变例为 nil。
+    static func engineDemo(record: GameRecord, index: Int) -> LineDemo? {
+        guard record.moves.indices.contains(index), GameAnalysis.isPlayerMove(index),
+              let pv = record.evals[index]?.pv, !pv.isEmpty,
+              let position = Position(fen: record.fen(atPly: index)) else { return nil }
+        let board = Board(position: position)
+        return LineDemo(
+            root: board, steps: CandidateSet.steps(pv: pv, from: board, limit: 6), viewer: .white,
+            winEnd: GameAnalysis.playerWinPercent(record.evals[index], ply: index)
+        )
+    }
+
     /// 刚走完 san 这一步后，被将军 / 将死的一方的王所在格。
     static func checkedKing(in position: Position, san: String?) -> Square? {
         guard let san, san.hasSuffix("+") || san.hasSuffix("#") else { return nil }

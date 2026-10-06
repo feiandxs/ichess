@@ -84,14 +84,18 @@ struct ChessBoardView: View {
             }
 
             // 箭头画在棋子之上、飞行动画之下。
-            // 对手的动画播完再出现应对 / 上一步箭头。
-            ForEach(game.arrows.filter { flight == nil || ($0.style != .reply && $0.style != .opponent) }) { arrow in
+            // 对手的动画播完再出现应对 / 上一步箭头；演示的箭头也等棋子落定。
+            ForEach(game.arrows.filter { flight == nil || ($0.style != .reply && $0.style != .opponent && $0.style != .demo) }) { arrow in
                 BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
                     .allowsHitTesting(false)
                     .transition(.opacity)
             }
 
-            if game.isTrying {
+            if game.isDemoing {
+                // 演示中染成另一种颜色，和试走、真实对局都区分开。
+                palette.demo.opacity(0.08)
+                    .allowsHitTesting(false)
+            } else if game.isTrying {
                 // 试走中整盘淡淡染色，一眼能和真实对局区分。
                 palette.sandbox.opacity(0.08)
                     .allowsHitTesting(false)
@@ -120,8 +124,8 @@ struct ChessBoardView: View {
         .overlay {
             RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
                 .strokeBorder(
-                    game.isTrying ? palette.sandbox : palette.boardBorder,
-                    lineWidth: game.isTrying ? 4 : 1.5
+                    game.isDemoing ? palette.demo : (game.isTrying ? palette.sandbox : palette.boardBorder),
+                    lineWidth: game.isDemoing || game.isTrying ? 4 : 1.5
                 )
                 .allowsHitTesting(false)
         }
@@ -153,9 +157,9 @@ struct ChessBoardView: View {
             game.opponentMoveAnimating = false
             return
         }
-        // 对手的子按设置的速度慢慢走；玩家自己的子保持利落。减弱动态时只做淡入。
-        let opponent = played.piece.color != game.playerColor
-        let duration = reduceMotion ? 0.25 : (opponent ? theme.moveSpeed.opponentDuration : 0.3)
+        // 对手的子按设置的速度慢慢走；玩家自己的子保持利落；演示里两边都按设置的速度。减弱动态时只做淡入。
+        let slow = played.piece.color != game.playerColor || game.isDemoing
+        let duration = reduceMotion ? 0.25 : (slow ? theme.moveSpeed.opponentDuration : 0.3)
         flight = played
         flightProgress = 0
         withAnimation(.easeInOut(duration: duration)) {
@@ -187,13 +191,14 @@ struct ChessBoardView: View {
         let square = Square.at(row: row, col: col)
         let isLight = (row + col) % 2 == 0
         let piece = game.piece(at: square)
-        let isSelected = game.selected == square
+        let live = !game.isDemoing
+        let isSelected = live && game.selected == square
         let isLast = game.shownLastMove?.0 == square || game.shownLastMove?.1 == square
         let isHint = game.hintSquares.contains(square)
         let inCheck = isKingInCheck(on: square, piece: piece)
         let isTarget = game.legalTargets.contains(square)
-        let isRisky = game.riskyTargets[square] != nil
-        let isEndangered = game.dangers.contains { $0.square == square }
+        let isRisky = live && game.riskyTargets[square] != nil
+        let isEndangered = live && game.dangers.contains { $0.square == square }
         let hideMover = flight?.to == square
         let hideCaptured = flight?.captured?.square == square && flightProgress < 1
 
@@ -248,8 +253,8 @@ struct ChessBoardView: View {
 
     private func isKingInCheck(on square: Square, piece: Piece?) -> Bool {
         guard piece?.kind == .king else { return false }
-        if case let .check(color) = game.shownBoard.state { return piece?.color == color }
-        if case let .checkmate(color) = game.shownBoard.state { return piece?.color == color }
+        if case let .check(color) = game.displayBoard.state { return piece?.color == color }
+        if case let .checkmate(color) = game.displayBoard.state { return piece?.color == color }
         return false
     }
 }
