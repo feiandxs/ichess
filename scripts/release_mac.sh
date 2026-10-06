@@ -10,6 +10,8 @@ PROJECT_REL="ichess/ichess.xcodeproj"
 APP_NAME="Nook Chess"
 NOTARY_PROFILE="${NOTARY_PROFILE:-nook-notary}"
 DIST="$ROOT/dist"
+# 最终 zip 放到用户的「下载」目录，可用 OUTPUT_DIR 覆盖；中间产物仍在 dist/。
+OUTPUT_DIR="${OUTPUT_DIR:-$HOME/Downloads}"
 
 VARIANT="public"
 REF="main"
@@ -21,9 +23,9 @@ Usage: scripts/release_mac.sh [--variant public|personal] [--ref <git-ref>] [--s
 
   --variant public     (default) Build from a clean 'git worktree' of <ref>, copy the gitignored
                        .nnue networks from this checkout, assert no Chess.com artwork is bundled.
-                       Output: dist/NookChess-<version>-<build>.zip   (safe to share)
+                       Output: ~/Downloads/NookChess-<version>-<build>.zip   (safe to share)
   --variant personal   Build from THIS working checkout, including local-only Chess.com piece sets.
-                       Output: dist/NookChess-<version>-<build>-personal.zip
+                       Output: ~/Downloads/NookChess-<version>-<build>-personal.zip
                        FOR YOUR OWN MACHINES ONLY. NEVER SHARE OR UPLOAD IT.
   --ref <git-ref>      Ref for the public variant (default: main).
   --skip-notarize      Stop after signing and verification.
@@ -264,7 +266,8 @@ Third-party piece artwork credits and licenses are in PieceArtworkLicenses.txt
 inside the app bundle.
 TXT
 fi
-FINAL="$DIST/$BASENAME.zip"
+mkdir -p "$OUTPUT_DIR"
+FINAL="$OUTPUT_DIR/$BASENAME.zip"
 rm -f "$FINAL"
 (cd "$WORK/stage" && ditto -c -k --keepParent "$BASENAME" "$FINAL")
 echo "Done: $FINAL"

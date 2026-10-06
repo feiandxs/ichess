@@ -17,7 +17,7 @@ bash scripts/download_stockfish_networks.sh
 
 ## 发布（macOS）
 
-`scripts/release_mac.sh` 一条命令完成通用二进制（x86_64 + arm64）归档、Developer ID 签名、公证、装订并打包为 zip，产物位于 `dist/`（已被 .gitignore 忽略）。
+`scripts/release_mac.sh` 一条命令完成通用二进制（x86_64 + arm64）归档、Developer ID 签名、公证、装订并打包为 zip。最终 zip 输出到 `~/Downloads`（可用环境变量 `OUTPUT_DIR` 修改），中间产物位于 `dist/`（已被 .gitignore 忽略）。
 
 ```sh
 scripts/release_mac.sh                       # public：默认，从干净的 main 构建，可分享
@@ -26,8 +26,8 @@ scripts/release_mac.sh --variant personal    # personal：从当前工作目录�
 scripts/release_mac.sh --skip-notarize       # 只签名不公证
 ```
 
-- public：通过临时 `git worktree` 构建指定 ref，从本机复制被忽略的 `.nnue`（缺失时报错，先执行 `scripts/download_stockfish_networks.sh`），并断言应用包内没有 Chess.com 素材或 `catalog.local.json`。输出 `dist/NookChess-<版本>-<构建号>.zip`，内含应用与中英文 GPL-3.0 / 第三方说明 README。
-- personal：包含本地 Chess.com 素材，仅供自己的机器使用，**绝不可分享、上传或发布**。输出 `dist/NookChess-<版本>-<构建号>-personal.zip`。
+- public：通过临时 `git worktree` 构建指定 ref，从本机复制被忽略的 `.nnue`（缺失时报错，先执行 `scripts/download_stockfish_networks.sh`），并断言应用包内没有 Chess.com 素材或 `catalog.local.json`。输出 `~/Downloads/NookChess-<版本>-<构建号>.zip`，内含应用与中英文 GPL-3.0 / 第三方说明 README。
+- personal：包含本地 Chess.com 素材，仅供自己的机器使用，**绝不可分享、上传或发布**。输出 `~/Downloads/NookChess-<版本>-<构建号>-personal.zip`。
 
 首次公证前需一次性保存凭据（使用 appleid.apple.com 生成的 App 专用密码）：
 
