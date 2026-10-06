@@ -16,6 +16,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-$HOME/Downloads}"
 VARIANT="public"
 REF="main"
 SKIP_NOTARIZE=0
+KEEP_INTERMEDIATES=0
 
 usage() {
     cat <<USAGE
@@ -29,6 +30,8 @@ Usage: scripts/release_mac.sh [--variant public|personal] [--ref <git-ref>] [--s
                        FOR YOUR OWN MACHINES ONLY. NEVER SHARE OR UPLOAD IT.
   --ref <git-ref>      Ref for the public variant (default: main).
   --skip-notarize      Stop after signing and verification.
+  --keep-intermediates Keep dist/<variant>/ (archive, export, dSYMs) after a successful run.
+                       By default they are deleted so only the zip remains.
 
 Environment:
   NOTARY_PROFILE       notarytool keychain profile (default: nook-notary).
@@ -51,6 +54,7 @@ while [ $# -gt 0 ]; do
         --personal) VARIANT="personal"; shift ;;
         --public) VARIANT="public"; shift ;;
         --skip-notarize) SKIP_NOTARIZE=1; shift ;;
+        --keep-intermediates) KEEP_INTERMEDIATES=1; shift ;;
         -h|--help) usage; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
     esac
@@ -271,5 +275,11 @@ FINAL="$OUTPUT_DIR/$BASENAME.zip"
 rm -f "$FINAL"
 (cd "$WORK/stage" && ditto -c -k --keepParent "$BASENAME" "$FINAL")
 echo "Done: $FINAL"
+
+# 成功后删掉中间产物（归档、导出、dSYM），免得 Spotlight 搜出一堆 Nook Chess；失败或 --skip-notarize 时保留，方便排查。
+if [ "$KEEP_INTERMEDIATES" -eq 0 ]; then
+    rm -rf "$WORK"
+    echo "Removed intermediates: $WORK"
+fi
 [ "$VARIANT" = "personal" ] && echo "REMINDER: this personal build contains Chess.com artwork. Do not share it."
 exit 0

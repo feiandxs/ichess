@@ -17,7 +17,7 @@ bash scripts/download_stockfish_networks.sh
 
 ## 发布（macOS）
 
-`scripts/release_mac.sh` 一条命令完成通用二进制（x86_64 + arm64）归档、Developer ID 签名、公证、装订并打包为 zip。最终 zip 输出到 `~/Downloads`（可用环境变量 `OUTPUT_DIR` 修改），中间产物位于 `dist/`（已被 .gitignore 忽略）。
+`scripts/release_mac.sh` 一条命令完成通用二进制（x86_64 + arm64）归档、Developer ID 签名、公证、装订并打包为 zip。最终 zip 输出到 `~/Downloads`（可用环境变量 `OUTPUT_DIR` 修改），中间产物位于 `dist/`（已被 .gitignore 忽略），成功后自动删除，加 `--keep-intermediates` 可保留。
 
 ```sh
 scripts/release_mac.sh                       # public：默认，从干净的 main 构建，可分享
