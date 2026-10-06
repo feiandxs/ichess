@@ -358,6 +358,7 @@ struct ContentView: View {
                 Toggle("Mark risky squares for the selected piece", isOn: $game.showsRiskyMoves)
                 Toggle("Review each move after you play", isOn: $game.showsFeedback)
                 Toggle("Auto key-point reminders", isOn: $game.showsKeyPoints)
+                Toggle("Pause on mistakes", isOn: $game.pausesOnMistakes)
             }
             .disabled(!game.activeMode.allowsAids)
         } label: {

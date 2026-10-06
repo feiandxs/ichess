@@ -409,9 +409,12 @@ struct CoachPanelView: View {
     // MARK: - 走法演示
 
     /// 「演示」小按钮：高度和一行字一样，不撑高说明区。
-    private func demoChip(palette: BoardPalette, action: @escaping () -> Void) -> some View {
+    private func demoChip(
+        _ title: LocalizedStringKey = "Show line", systemImage: String = "play.fill",
+        palette: BoardPalette, action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            Label("Show line", systemImage: "play.fill")
+            Label(title, systemImage: systemImage)
                 .labelStyle(.titleAndIcon)
                 .font(.caption2.weight(.bold))
                 .lineLimit(1)
@@ -623,10 +626,17 @@ struct CoachPanelView: View {
     private func feedbackMessage(_ feedback: MoveFeedback, palette: BoardPalette) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             // 标题写明评的是你的第几步、哪一步，不会和对手的应对混淆。
-            Label(feedback.headline, systemImage: feedback.verdict.symbol)
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(palette.verdict(feedback.verdict))
-                .lineLimit(2)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Label(feedback.headline, systemImage: feedback.verdict.symbol)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(palette.verdict(feedback.verdict))
+                    .lineLimit(2)
+                Spacer(minLength: 0)
+                // 对手应对之后，回到走之前的局面看看更好的走法。
+                if game.canLookBack {
+                    demoChip("Look back", systemImage: "arrow.counterclockwise", palette: palette) { game.startFeedbackDemo() }
+                }
+            }
             if let line = feedback.winLine {
                 Text(line)
                     .foregroundStyle(palette.secondaryText)
@@ -675,6 +685,43 @@ struct CoachPanelView: View {
         return point.side == game.playerColor ? palette.gain : palette.danger
     }
 
+    // MARK: - 暂停时的三个选择
+
+    private func pauseButtons(palette: BoardPalette) -> some View {
+        HStack(spacing: 6) {
+            pauseButton("Take back", systemImage: "arrow.uturn.backward", prominent: true, palette: palette) {
+                game.takeBack()
+            }
+            pauseButton("Show me", systemImage: "play.fill", prominent: false, palette: palette) {
+                game.startFeedbackDemo()
+            }
+            .disabled(!game.canDemoFeedback)
+            .opacity(game.canDemoFeedback ? 1 : 0.4)
+            pauseButton("Continue", systemImage: "forward.end.fill", prominent: false, palette: palette) {
+                game.continueAfterPause()
+            }
+        }
+    }
+
+    private func pauseButton(
+        _ title: LocalizedStringKey, systemImage: String, prominent: Bool, palette: BoardPalette, action: @escaping () -> Void
+    ) -> some View {
+        let tint = palette.arrow(.better)
+        return Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .labelStyle(.titleAndIcon)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .padding(.horizontal, 6)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .foregroundStyle(prominent ? Color.white : palette.chipText)
+                .background(prominent ? tint : palette.chipFill)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - 底部行
 
     @ViewBuilder
@@ -696,6 +743,8 @@ struct CoachPanelView: View {
             .buttonStyle(.plain)
             .disabled(!game.canPlaySandboxMove)
             .opacity(game.canPlaySandboxMove ? 1 : 0.4)
+        } else if game.isPausedOnMistake {
+            pauseButtons(palette: palette)
         } else if let note = game.safetyNote {
             Label(note, systemImage: "exclamationmark.triangle.fill")
                 .labelStyle(.titleAndIcon)

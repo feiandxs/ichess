@@ -91,6 +91,13 @@ struct ChessBoardView: View {
                     .transition(.opacity)
             }
 
+            // 暂停时半透明的棋子沿更好的走法来回滑动，画在箭头之上。
+            if let ghost = game.ghost, !game.isDemoing, !game.isTrying {
+                GhostPieceView(ghost: ghost, squareSize: square, palette: palette)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+
             if game.isDemoing {
                 // 演示中染成另一种颜色，和试走、真实对局都区分开。
                 palette.demo.opacity(0.08)
@@ -410,6 +417,47 @@ struct BoardArrowView: View {
         // 先沿较长的一边走，再拐弯，和棋子的飞行路线一致。
         let corner = dr > dc ? CGPoint(x: from.x, y: to.y) : CGPoint(x: to.x, y: from.y)
         return [from, corner, to]
+    }
+}
+
+/// 暂停时演示「更好的走法」：半透明的子从起点滑到终点，停一下，回来，循环；减弱动态时只静静停在终点。
+struct GhostPieceView: View {
+    let ghost: GhostMove
+    let squareSize: CGFloat
+    let palette: BoardPalette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var start = Date()
+
+    var body: some View {
+        let from = center(ghost.from)
+        let to = center(ghost.to)
+        let knight = ghost.piece.kind == .knight
+        ZStack {
+            // 终点轻轻托一下，棋子落在对方子上时也看得出要去哪。
+            RoundedRectangle(cornerRadius: squareSize * 0.12, style: .continuous)
+                .strokeBorder(palette.arrow(.better).opacity(0.7), lineWidth: max(2, squareSize * 0.04))
+                .frame(width: squareSize * 0.92, height: squareSize * 0.92)
+                .position(to)
+            if reduceMotion {
+                sprite.position(to)
+            } else {
+                TimelineView(.animation) { context in
+                    let progress = GhostMotion.progress(at: context.date.timeIntervalSince(start))
+                    sprite.position(TravelPath.point(t: CGFloat(progress), from: from, to: to, knight: knight))
+                }
+            }
+        }
+        .frame(width: squareSize * 8, height: squareSize * 8, alignment: .topLeading)
+        .onAppear { start = Date() }
+    }
+
+    private var sprite: some View {
+        PieceSprite(piece: ghost.piece, facing: ghost.from, squareSize: squareSize)
+            .opacity(0.6)
+    }
+
+    private func center(_ square: Square) -> CGPoint {
+        CGPoint(x: (CGFloat(square.col) + 0.5) * squareSize, y: (CGFloat(square.row) + 0.5) * squareSize)
     }
 }
 
