@@ -17,6 +17,13 @@ struct PlayedMove: Equatable, Identifiable {
     var isKnight: Bool { piece.kind == .knight }
 }
 
+/// 暂停时棋盘上半透明演示的「更好的走法」：走前局面里的那颗子，从 from 滑到 to。
+struct GhostMove: Equatable {
+    let piece: Piece
+    let from: Square
+    let to: Square
+}
+
 @MainActor
 final class ChessGameStore: ObservableObject {
     @Published private(set) var board = Board() {
@@ -76,6 +83,7 @@ final class ChessGameStore: ObservableObject {
                 demo = nil
                 exitSandbox()
                 cancelFeedback()
+                clearPause()
                 invalidateThreat()
                 clearHint()
             }
@@ -113,9 +121,23 @@ final class ChessGameStore: ObservableObject {
                 precomputeAnalysisIfNeeded()
             } else {
                 cancelFeedback()
+                // 没有点评就没有可停的理由：暂停中关掉点评 = 继续。
+                if isPausedOnMistake { continueAfterPause() }
             }
         }
     }
+    /// 玩家走出失误 / 大漏着时，对手先不走，等玩家决定；不够精确时延后回应。练习模式，默认开启。
+    @Published var pausesOnMistakes: Bool {
+        didSet {
+            UserDefaults.standard.set(pausesOnMistakes, forKey: Self.pausesOnMistakesKey)
+            // 暂停中关掉开关：当作「继续」。
+            if !pausesOnMistakes, isPausedOnMistake { continueAfterPause() }
+        }
+    }
+    /// 正停在玩家的失误上，对手在等；点评、更好的走法箭头和幽灵棋子都留着。
+    @Published private(set) var isPausedOnMistake = false
+    /// 暂停（或不够精确的延后）期间，沿更好的走法滑动的半透明棋子。
+    @Published private(set) var ghost: GhostMove?
     /// 显示实时胜率（棋盘旁的胜率条 + 趋势图），练习 / 对战都可以开；和练习辅助互相独立。
     @Published var showsWinChances: Bool {
         didSet {
@@ -166,6 +188,7 @@ final class ChessGameStore: ObservableObject {
     private static let feedbackKey = "nookchess.showsFeedback"
     private static let winChancesKey = "nookchess.showsWinChances"
     private static let keyPointsKey = "nookchess.showsKeyPoints"
+    private static let pausesOnMistakesKey = "nookchess.pausesOnMistakes"
 
     let playerColor: Piece.Color = .white
     /// Restored games should not replay the last move animation.
@@ -203,6 +226,10 @@ final class ChessGameStore: ObservableObject {
     private static let threatMovetime = 400
     private var hasRatedThisGame = false
     private var positionRevision = 0
+    /// 已经处理过暂停（玩家点了继续）的步数；同一步不再暂停。
+    private var pauseHandledPly = -1
+    /// 点评出现的时间，不够精确的延后从这里起算。
+    private var feedbackShownAt: Date?
 
     var sideToMove: Piece.Color { board.position.sideToMove }
 
@@ -369,6 +396,7 @@ final class ChessGameStore: ObservableObject {
         showsFeedback = UserDefaults.standard.object(forKey: Self.feedbackKey) as? Bool ?? true
         showsWinChances = UserDefaults.standard.bool(forKey: Self.winChancesKey)
         showsKeyPoints = UserDefaults.standard.object(forKey: Self.keyPointsKey) as? Bool ?? true
+        pausesOnMistakes = UserDefaults.standard.object(forKey: Self.pausesOnMistakesKey) as? Bool ?? true
         if let raw = UserDefaults.standard.string(forKey: Self.difficultyKey),
            let difficulty = Difficulty(rawValue: raw) {
             selectedDifficulty = difficulty
@@ -418,6 +446,7 @@ final class ChessGameStore: ObservableObject {
     var statusText: String {
         if isDemoing { return String(localized: "Line demo", bundle: .localized) }
         if isTrying { return String(localized: "Trying moves", bundle: .localized) }
+        if isPausedOnMistake { return String(localized: "Paused", bundle: .localized) }
         if hasResigned { return String(localized: "You resigned · You lost", bundle: .localized) }
         if isEngineThinking { return String(localized: "Computer is thinking", bundle: .localized) }
         switch board.state {
@@ -670,6 +699,11 @@ final class ChessGameStore: ObservableObject {
 
     func undo() {
         guard canUndo else { return }
+        // 暂停中悔棋 = 撤回重走（对手还没走，只撤玩家那一步）。
+        if isPausedOnMistake {
+            takeBack()
+            return
+        }
         // 终局后悔棋：这盘不算结束，已归档的记录撤掉，再结束时重新归档。
         if let id = archiveID {
             GameArchive.shared.delete(id)
@@ -692,6 +726,111 @@ final class ChessGameStore: ObservableObject {
         persist()
         precomputeAnalysisIfNeeded()
         ensureWinChances()
+    }
+
+    // MARK: - 失误时暂停
+
+    /// 暂停中：撤掉玩家刚走的那一步，回到走之前的局面让他重走。
+    /// 对手还没走，所以只撤一步（和普通悔棋按谁走最后一步撤一步或两步不同）；记录、存档、评估一并回退。
+    func takeBack() {
+        guard isPausedOnMistake, !moves.isEmpty else { return }
+        positionRevision += 1
+        demo = nil
+        cancelEngine()
+        cancelHint()
+        cancelFeedback()
+        clearHint()
+        hintError = nil
+        moves = MistakePause.afterTakeBack(moves)
+        board = boardAfter(plies: moves.count)
+        selected = nil
+        shouldAnimateLastMove = false
+        // 恢复对手上一步的标记（和读档一样，只留起止格）。
+        lastPlayed = moves.last.flatMap { record in
+            guard !record.from.isEmpty, let piece = board.position.piece(at: Square(record.to)) else { return nil }
+            return PlayedMove(id: UUID(), from: Square(record.from), to: Square(record.to), piece: piece, captured: nil)
+        }
+        persist()
+        precomputeAnalysisIfNeeded()
+        ensureWinChances()
+    }
+
+    /// 暂停中：接受这一步，对手照常走子。
+    func continueAfterPause() {
+        guard isPausedOnMistake else { return }
+        demo = nil
+        isPausedOnMistake = false
+        ghost = nil
+        pauseHandledPly = moves.count
+        refreshKeyPoint()
+        requestEngineMoveIfNeeded()
+    }
+
+    /// 点评之后该怎么走：照常 / 延后 / 暂停。
+    private func pauseAction() -> MistakePause.Action {
+        guard pauseHandledPly != moves.count, let feedback, feedbackPly == moves.count, showsFeedback else { return .none }
+        return MistakePause.action(
+            verdict: feedback.verdict, mode: activeMode, enabled: pausesOnMistakes, hasBetterMove: feedback.better != nil
+        )
+    }
+
+    /// 走前局面里要走更好那步的子，作为幽灵棋子。
+    private func makeGhost() -> GhostMove? {
+        guard let better = feedback?.better, !moves.isEmpty,
+              let piece = boardAfter(plies: moves.count - 1).position.piece(at: better.from) else { return nil }
+        return GhostMove(piece: piece, from: better.from, to: better.to)
+    }
+
+    private func enterPause() {
+        isEngineThinking = false
+        engineTask = nil
+        selected = nil
+        ghost = makeGhost()
+        isPausedOnMistake = true
+        keyPoint = nil
+    }
+
+    /// 清掉暂停 / 延后的全部状态（悔棋、重开、认输、切模式）。
+    private func clearPause() {
+        isPausedOnMistake = false
+        ghost = nil
+        pauseHandledPly = -1
+    }
+
+    // MARK: 回看与「看演示」
+
+    /// 点评里更好的走法能演示：有问题的评级、对应的是玩家刚走的那步（暂停中，或对手刚应对完）。
+    var canDemoFeedback: Bool {
+        guard demo == nil, activeMode.allowsAids, let feedback, feedback.verdict.isProblem, feedback.better != nil,
+              feedbackPly >= 1, feedbackPly >= moves.count - 1, feedbackPly <= moves.count,
+              !isEngineThinking, pendingPromotion == nil, !isGameOver else { return false }
+        return true
+    }
+
+    /// 对手应对之后，点评里的「回看」按钮（暂停中用的是底部三个按钮）。
+    var canLookBack: Bool { canDemoFeedback && !isPausedOnMistake }
+
+    /// 从玩家走这步之前的局面演示更好的走法和引擎的后续变例。
+    func startFeedbackDemo() {
+        guard canDemoFeedback else { return }
+        let before = boardAfter(plies: feedbackPly - 1)
+        let fen = before.position.fen
+        if let cached = analyses.peek(fen) {
+            beginFeedbackDemo(before: before, analysis: cached)
+            return
+        }
+        let revision = positionRevision
+        Task { [weak self] in
+            guard let analysis = try? await self?.analyze(fen), let self,
+                  positionRevision == revision, canDemoFeedback else { return }
+            beginFeedbackDemo(before: before, analysis: analysis)
+        }
+    }
+
+    private func beginFeedbackDemo(before: Board, analysis: EngineAnalysis) {
+        let pv = analysis.pv.first == analysis.bestMove ? analysis.pv : [analysis.bestMove]
+        let steps = CandidateSet.steps(pv: pv, from: before, limit: 6)
+        beginDemo(root: before, steps: steps, win: analysis.score.map { MoveClassifier.winPercent($0) })
     }
 
     func resign() {
@@ -755,6 +894,7 @@ final class ChessGameStore: ObservableObject {
         positionRevision += 1
         cancelHint()
         hintError = nil
+        pauseHandledPly = -1
         board = next
         moves.append(MoveRecord(move: played, fen: next.position.fen))
         selected = nil
@@ -770,7 +910,7 @@ final class ChessGameStore: ObservableObject {
     }
 
     private func requestEngineMoveIfNeeded() {
-        guard hasChosenDifficulty, !isEngineThinking else { return }
+        guard hasChosenDifficulty, !isEngineThinking, !isPausedOnMistake else { return }
         guard !isGameOver, pendingPromotion == nil, sideToMove != playerColor else { return }
         isEngineThinking = true
         selected = nil
@@ -782,6 +922,19 @@ final class ChessGameStore: ObservableObject {
         let pendingFeedback = feedbackTask
         engineTask = Task { [weak self] in
             await pendingFeedback?.value
+            guard let self, !Task.isCancelled else { return }
+            // 点评出来后再决定：失误停下等玩家，不够精确至少留够时间看箭头。
+            var delay = 0
+            switch self.pauseAction() {
+            case .pause:
+                self.enterPause()
+                return
+            case let .delay(milliseconds):
+                delay = milliseconds
+                self.ghost = self.makeGhost()
+            case .none:
+                break
+            }
             do {
                 let move: EngineMove?
                 if let elo = difficulty.engineElo {
@@ -801,11 +954,13 @@ final class ChessGameStore: ObservableObject {
                         )
                     }.value
                 }
-                try await Task.sleep(for: .milliseconds(420))
-                guard let self, !Task.isCancelled else { return }
+                let elapsed = self.feedbackShownAt.map { Date().timeIntervalSince($0) } ?? 0
+                try await Task.sleep(for: .milliseconds(MistakePause.replyWait(delayMilliseconds: delay, elapsed: elapsed)))
+                guard !Task.isCancelled else { return }
                 self.applyEngineMove(move)
             } catch {
-                guard let self, !Task.isCancelled else { return }
+                guard !Task.isCancelled else { return }
+                self.ghost = nil
                 self.isEngineThinking = false
                 self.engineError = error.localizedDescription
             }
@@ -814,6 +969,7 @@ final class ChessGameStore: ObservableObject {
 
     private func applyEngineMove(_ move: EngineMove?) {
         isEngineThinking = false
+        ghost = nil
         guard let move, !isGameOver, sideToMove != playerColor else { return }
         var next = board
         guard let played = next.move(pieceAt: move.from, to: move.to) else { return }
@@ -1053,7 +1209,18 @@ final class ChessGameStore: ObservableObject {
                     san: san,
                     moveNumber: number
                 )
+                #if DEBUG
+                // 仅调试：`-nookchess.debugForceVerdict inaccuracy` 把评级改成指定等级（截图用）。
+                if let raw = UserDefaults.standard.string(forKey: "nookchess.debugForceVerdict"),
+                   let forced = MoveVerdict(rawValue: raw), let current = feedback, current.better != nil {
+                    feedback = MoveFeedback(
+                        verdict: forced, reason: current.reason, better: current.better,
+                        moveNumber: current.moveNumber, san: current.san, winBefore: current.winBefore, winAfter: current.winAfter
+                    )
+                }
+                #endif
                 feedbackPly = index
+                feedbackShownAt = Date()
                 isFeedbackPending = false
             } catch {
                 // 点评拿不到就不显示，不打扰对局。
@@ -1467,6 +1634,7 @@ final class ChessGameStore: ObservableObject {
         engineTask?.cancel()
         engineTask = nil
         isEngineThinking = false
+        clearPause()
     }
 }
 
@@ -1693,6 +1861,49 @@ extension ChessGameStore {
                     if preset == "demoexit" {
                         try? await Task.sleep(for: .seconds(1.5))
                         exitDemo()
+                    }
+                }
+            }
+        case "pause-blunder", "pause-ghost", "pause-demo", "pause-takeback", "pause-continue", "inaccuracy-delay", "lookback":
+            // 真实引擎点评：摆好开局，走一步（默认是个大漏着），再按预设做后续动作。
+            // `-nookchess.debugMoves "e2e4 ..."` 换开局，`-nookchess.debugPlay f3g5` 换玩家的那步。
+            let defaults = UserDefaults.standard
+            let prelude = (defaults.string(forKey: "nookchess.debugMoves") ?? "e2e4 e7e5 g1f3 b8c6 f1c4 g8f6").split(whereSeparator: { $0 == " " || $0 == "," }).map(String.init)
+            let (built, records) = debugBuild(DebugGame(ucis: prelude, evals: []), withEvals: false)
+            board = built
+            moves = records
+            startEval = nil
+            lastPlayed = records.last.flatMap { record in
+                built.position.piece(at: Square(record.to)).map {
+                    PlayedMove(id: UUID(), from: Square(record.from), to: Square(record.to), piece: $0, captured: nil)
+                }
+            }
+            let play = defaults.string(forKey: "nookchess.debugPlay") ?? "f3g5"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [self] in
+                Task {
+                    tap(Square(String(play.prefix(2)))); tap(Square(String(play.dropFirst(2).prefix(2))))
+                    switch preset {
+                    case "pause-demo":
+                        try? await Task.sleep(for: .seconds(5))
+                        startFeedbackDemo()
+                        for _ in 0..<2 {
+                            try? await Task.sleep(for: .seconds(1.5))
+                            demoNext()
+                        }
+                    case "pause-takeback":
+                        try? await Task.sleep(for: .seconds(5))
+                        takeBack()
+                    case "pause-continue", "lookback":
+                        try? await Task.sleep(for: .seconds(5))
+                        continueAfterPause()
+                        if preset == "lookback" {
+                            try? await Task.sleep(for: .seconds(8))
+                            startFeedbackDemo()
+                            try? await Task.sleep(for: .seconds(1.5))
+                            demoNext()
+                        }
+                    default:
+                        break
                     }
                 }
             }
