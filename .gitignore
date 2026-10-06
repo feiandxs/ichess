@@ -78,3 +78,6 @@ ichess/ichess/PieceSets/tigers__*.png
 ichess/ichess/PieceSets/tournament__*.png
 ichess/ichess/PieceSets/vintage__*.png
 ichess/ichess/PieceSets/wood__*.png
+
+# Release output (scripts/release_mac.sh)
+dist/
