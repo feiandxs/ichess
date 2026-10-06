@@ -28,7 +28,7 @@ xcodebuild -project ichess/ichess.xcodeproj -scheme ichess -configuration Releas
 
 - **Chess.com 棋子只能留在本机**：37 套 Chess.com 棋子 PNG 和 `ichess/ichess/PieceSets/catalog.local.json` 被 `.gitignore` 忽略。它们没有再分发授权，**绝不能 `git add`、取消忽略、上传或放进给别人的安装包**。`PieceSet.swift` 会在本地文件存在时把它们追加到棋子列表；没有这些文件时 App 照常运行。
 - 仓库里的棋子都可以分发：原创的 Nook Flat 和五套 `nook_*`（SVG 源在 `artwork/`），以及许可明确的 Lichess 款式。许可说明在 `ichess/ichess/PieceArtworkLicenses.txt`。
-- Stockfish 是 GPL-3.0，链接进了 App。把 App 发给别人就算分发，要附上源码地址（公开版打包脚本会自动附说明）。
+- Stockfish 是 GPL-3.0，链接进了 App。把 App 发给别人就算分发，要附上源码地址（公开版打包脚本会自动附说明）。详细的许可排查（链接方式、App Store 兼容性、可选路线）见 `docs/stockfish-distribution-review.md`。仓库目前没有 LICENSE 文件，要不要按 GPL-3.0 补上，由作者决定。
 
 ## 发布 macOS（`scripts/release_mac.sh`）
 
