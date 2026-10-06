@@ -5,7 +5,43 @@
       "id": "nook_flat",
       "name": "Nook Flat",
       "source": "自绘 SVG",
-      "style": "icon"
+      "style": "icon",
+      "layout": "centered"
+    },
+    {
+      "id": "nook_soft",
+      "name": "Soft Geometry",
+      "source": "自绘 SVG",
+      "style": "icon",
+      "layout": "square"
+    },
+    {
+      "id": "nook_crisp",
+      "name": "Crisp Facets",
+      "source": "自绘 SVG",
+      "style": "icon",
+      "layout": "square"
+    },
+    {
+      "id": "nook_block",
+      "name": "Bold Blocks",
+      "source": "自绘 SVG",
+      "style": "icon",
+      "layout": "square"
+    },
+    {
+      "id": "nook_mono",
+      "name": "Monoline",
+      "source": "自绘 SVG",
+      "style": "icon",
+      "layout": "square"
+    },
+    {
+      "id": "nook_badge",
+      "name": "Badge Discs",
+      "source": "自绘 SVG",
+      "style": "icon",
+      "layout": "square"
     },
     {
       "id": "clay",

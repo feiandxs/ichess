@@ -36,56 +36,25 @@ struct ChessBoardView: View {
 
     @State private var flight: PlayedMove?
     @State private var flightProgress: CGFloat = 1
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let palette = theme.palette
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
-            let square = side / 8
-
-            ZStack {
-                Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-                    ForEach(0..<8, id: \.self) { row in
-                        GridRow {
-                            ForEach(0..<8, id: \.self) { col in
-                                squareCell(row: row, col: col, size: square, palette: palette)
-                            }
-                        }
-                    }
-                }
-
-                if let flight {
-                    if let captured = flight.captured {
-                        PieceSprite(piece: captured, facing: captured.square, squareSize: square)
-                            .position(center(of: captured.square, squareSize: square))
-                            .opacity(1 - flightProgress)
-                            .scaleEffect(1 - 0.35 * flightProgress)
-                            .allowsHitTesting(false)
-                    }
-
-                    PieceSprite(piece: flight.piece, facing: flight.from, squareSize: square)
-                        .scaleEffect(flightScale)
-                        .position(flightPosition(squareSize: square))
-                        .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
-                        .zIndex(2)
-                        .allowsHitTesting(false)
-                }
-            }
-            .frame(width: side, height: side, alignment: .topLeading)
-            .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
-                    .strokeBorder(palette.boardBorder, lineWidth: 1.5)
-                    .allowsHitTesting(false)
+            BoardFrame(side: side) { boardSide in
+                boardContent(side: boardSide, palette: palette)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .allowsHitTesting(!game.isEngineThinking)
-            .onChange(of: game.lastPlayed?.id) { _, _ in
+            .animation(.easeOut(duration: 0.2), value: game.arrows)
+            .onChange(of: game.shownPlayed?.id) { _, _ in
                 if game.shouldAnimateLastMove {
                     startFlight()
                 } else {
                     flight = nil
                     flightProgress = 1
+                    game.opponentMoveAnimating = false
                 }
             }
         }
@@ -94,6 +63,71 @@ struct ChessBoardView: View {
             Button("Rook") { game.completePromotion(to: .rook) }
             Button("Bishop") { game.completePromotion(to: .bishop) }
             Button("Knight") { game.completePromotion(to: .knight) }
+        }
+    }
+
+    private func boardContent(side: CGFloat, palette: BoardPalette) -> some View {
+        let square = side / 8
+        return ZStack {
+            Grid(horizontalSpacing: 0, verticalSpacing: 0) {
+                ForEach(0..<8, id: \.self) { row in
+                    GridRow {
+                        ForEach(0..<8, id: \.self) { col in
+                            squareCell(row: row, col: col, size: square, palette: palette)
+                        }
+                    }
+                }
+            }
+
+            if theme.showsCoordinates, theme.coordinatePlacement == .inside {
+                BoardCoordinatesView(squareSize: square, palette: palette)
+            }
+
+            // 箭头画在棋子之上、飞行动画之下。
+            // 对手的动画播完再出现应对 / 上一步箭头；演示的箭头也等棋子落定。
+            ForEach(game.arrows.filter { flight == nil || ($0.style != .reply && $0.style != .opponent && $0.style != .demo) }) { arrow in
+                BoardArrowView(arrow: arrow, squareSize: square, palette: palette)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+
+            if game.isDemoing {
+                // 演示中染成另一种颜色，和试走、真实对局都区分开。
+                palette.demo.opacity(0.08)
+                    .allowsHitTesting(false)
+            } else if game.isTrying {
+                // 试走中整盘淡淡染色，一眼能和真实对局区分。
+                palette.sandbox.opacity(0.08)
+                    .allowsHitTesting(false)
+            }
+
+            if let flight {
+                if let captured = flight.captured {
+                    PieceSprite(piece: captured, facing: captured.square, squareSize: square)
+                        .position(center(of: captured.square, squareSize: square))
+                        .opacity(1 - captureFade)
+                        .scaleEffect(1 - 0.35 * captureFade)
+                        .allowsHitTesting(false)
+                }
+
+                PieceSprite(piece: flight.piece, facing: flight.from, squareSize: square)
+                    .scaleEffect(reduceMotion ? 1 : flightScale)
+                    .opacity(reduceMotion ? flightProgress : 1)
+                    .position(flightPosition(squareSize: square))
+                    .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
+                    .zIndex(2)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(width: side, height: side, alignment: .topLeading)
+        .clipShape(RoundedRectangle(cornerRadius: square * 0.22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: square * 0.22, style: .continuous)
+                .strokeBorder(
+                    game.isDemoing ? palette.demo : (game.isTrying ? palette.sandbox : palette.boardBorder),
+                    lineWidth: game.isDemoing || game.isTrying ? 4 : 1.5
+                )
+                .allowsHitTesting(false)
         }
     }
 
@@ -111,19 +145,29 @@ struct ChessBoardView: View {
         return 1.22
     }
 
+    /// 被吃的子在飞行后半段才淡出，先让人看清是谁被吃。
+    private var captureFade: CGFloat {
+        min(1, max(0, (flightProgress - 0.5) / 0.4))
+    }
+
     private func startFlight() {
-        guard let played = game.lastPlayed else {
+        guard let played = game.shownPlayed else {
             flight = nil
             flightProgress = 1
+            game.opponentMoveAnimating = false
             return
         }
+        // 对手的子按设置的速度慢慢走；玩家自己的子保持利落；演示里两边都按设置的速度。减弱动态时只做淡入。
+        let slow = played.piece.color != game.playerColor || game.isDemoing
+        let duration = reduceMotion ? 0.25 : (slow ? theme.moveSpeed.opponentDuration : 0.3)
         flight = played
         flightProgress = 0
-        withAnimation(.easeInOut(duration: 0.34)) {
+        withAnimation(.easeInOut(duration: duration)) {
             flightProgress = 1
         } completion: {
             if flight?.id == played.id {
                 flight = nil
+                game.opponentMoveAnimating = false
             }
         }
     }
@@ -137,6 +181,7 @@ struct ChessBoardView: View {
 
     private func flightPosition(squareSize: CGFloat) -> CGPoint {
         guard let flight else { return .zero }
+        if reduceMotion { return center(of: flight.to, squareSize: squareSize) }
         let from = center(of: flight.from, squareSize: squareSize)
         let to = center(of: flight.to, squareSize: squareSize)
         return TravelPath.point(t: flightProgress, from: from, to: to, knight: flight.isKnight)
@@ -146,11 +191,14 @@ struct ChessBoardView: View {
         let square = Square.at(row: row, col: col)
         let isLight = (row + col) % 2 == 0
         let piece = game.piece(at: square)
-        let isSelected = game.selected == square
-        let isLast = game.lastMove?.0 == square || game.lastMove?.1 == square
-        let isHint = game.hint?.0 == square || game.hint?.1 == square
+        let live = !game.isDemoing
+        let isSelected = live && game.selected == square
+        let isLast = game.shownLastMove?.0 == square || game.shownLastMove?.1 == square
+        let isHint = game.hintSquares.contains(square)
         let inCheck = isKingInCheck(on: square, piece: piece)
         let isTarget = game.legalTargets.contains(square)
+        let isRisky = live && game.riskyTargets[square] != nil
+        let isEndangered = live && game.dangers.contains { $0.square == square }
         let hideMover = flight?.to == square
         let hideCaptured = flight?.captured?.square == square && flightProgress < 1
 
@@ -161,18 +209,39 @@ struct ChessBoardView: View {
             if isSelected { palette.selected }
             if inCheck { palette.check }
 
+            if isEndangered {
+                RoundedRectangle(cornerRadius: size * 0.12, style: .continuous)
+                    .strokeBorder(palette.danger, lineWidth: max(2, size * 0.05))
+                    .padding(size * 0.04)
+            }
+
             if let piece, !hideMover, !hideCaptured {
                 PieceSprite(piece: piece, facing: piece.square, squareSize: size)
             }
 
+            if isEndangered {
+                Image(systemName: "exclamationmark")
+                    .font(.system(size: size * 0.16, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .frame(width: size * 0.26, height: size * 0.26)
+                    .background(palette.danger, in: Circle())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(size * 0.03)
+            }
+
             if isTarget {
+                let fill = isRisky ? palette.danger : palette.targetFill
                 if piece != nil {
                     Circle()
-                        .stroke(palette.targetFill, lineWidth: 3)
+                        .stroke(fill, lineWidth: 3)
                         .padding(size * 0.08)
+                } else if isRisky {
+                    Image(systemName: "xmark")
+                        .font(.system(size: size * 0.18, weight: .bold))
+                        .foregroundStyle(fill)
                 } else {
                     Circle()
-                        .fill(palette.targetFill)
+                        .fill(fill)
                         .frame(width: size * 0.22, height: size * 0.22)
                 }
             }
@@ -184,9 +253,163 @@ struct ChessBoardView: View {
 
     private func isKingInCheck(on square: Square, piece: Piece?) -> Bool {
         guard piece?.kind == .king else { return false }
-        if case let .check(color) = game.board.state { return piece?.color == color }
-        if case let .checkmate(color) = game.board.state { return piece?.color == color }
+        if case let .check(color) = game.displayBoard.state { return piece?.color == color }
+        if case let .checkmate(color) = game.displayBoard.state { return piece?.color == color }
         return false
+    }
+}
+
+/// 棋盘外坐标边槽的尺寸：槽宽 = 格子边长 × ratio，棋盘随之缩小一点，整体仍是 side × side。
+enum BoardGutter {
+    static let ratio: CGFloat = 0.36
+
+    static func inset(side: CGFloat, ratio: CGFloat) -> CGFloat {
+        side * ratio / (8 + ratio)
+    }
+}
+
+/// 给棋盘套上坐标边槽：坐标在棋盘外时，左侧画 1–8、下方画 a–h，对齐格子中心；
+/// 棋盘本体（边长 boardSide）由 content 画在右上。坐标在棋盘内或关闭时就是 content 本身。
+struct BoardFrame<Content: View>: View {
+    @EnvironmentObject private var theme: ThemeStore
+    let side: CGFloat
+    @ViewBuilder let content: (CGFloat) -> Content
+
+    var body: some View {
+        let gutter = BoardGutter.inset(side: side, ratio: theme.gutterRatio)
+        let boardSide = side - gutter
+        let square = boardSide / 8
+        let color = theme.palette.secondaryText
+        let font = Font.system(size: max(9, square * 0.26), weight: .semibold, design: .rounded)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
+                if gutter > 0 {
+                    VStack(spacing: 0) {
+                        ForEach(0..<8, id: \.self) { row in
+                            Text(verbatim: "\(8 - row)")
+                                .font(font)
+                                .foregroundStyle(color)
+                                .frame(width: gutter, height: square)
+                        }
+                    }
+                    .accessibilityHidden(true)
+                }
+                content(boardSide)
+                    .frame(width: boardSide, height: boardSide)
+            }
+            if gutter > 0 {
+                HStack(spacing: 0) {
+                    Color.clear.frame(width: gutter, height: gutter)
+                    ForEach(0..<8, id: \.self) { col in
+                        Text(verbatim: String(UnicodeScalar(UInt8(97 + col))))
+                            .font(font)
+                            .foregroundStyle(color)
+                            .frame(width: square, height: gutter)
+                    }
+                }
+                .accessibilityHidden(true)
+            }
+        }
+        .frame(width: side, height: side, alignment: .topLeading)
+    }
+}
+
+/// 棋盘内坐标：左列格子左上角是数字，底行格子右下角是字母（玩家执白，a1 在左下）。
+/// 字号小、贴角，尽量不压到棋子；画在所有格子之上，不拦截点击。
+struct BoardCoordinatesView: View {
+    let squareSize: CGFloat
+    let palette: BoardPalette
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(0..<8, id: \.self) { row in
+                label("\(8 - row)", onLight: row % 2 == 0, alignment: .topLeading)
+                    .offset(y: CGFloat(row) * squareSize)
+            }
+            ForEach(0..<8, id: \.self) { col in
+                label(String(UnicodeScalar(UInt8(97 + col))), onLight: (7 + col) % 2 == 0, alignment: .bottomTrailing)
+                    .offset(x: CGFloat(col) * squareSize, y: 7 * squareSize)
+            }
+        }
+        .frame(width: squareSize * 8, height: squareSize * 8, alignment: .topLeading)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// 底色取格子本色：空格上看不出来，压在棋子上时仍能托住字。
+    private func label(_ text: String, onLight: Bool, alignment: Alignment) -> some View {
+        let inset = squareSize * 0.04
+        return Text(verbatim: text)
+            .font(.system(size: max(8, squareSize * 0.145), weight: .bold, design: .rounded))
+            .foregroundStyle(palette.coordinate(onLight: onLight))
+            .padding(.horizontal, squareSize * 0.02)
+            .background(
+                (onLight ? palette.lightSquare : palette.darkSquare).opacity(0.85),
+                in: RoundedRectangle(cornerRadius: squareSize * 0.04, style: .continuous)
+            )
+            .padding(inset)
+            .frame(width: squareSize, height: squareSize, alignment: alignment)
+    }
+}
+
+/// 从一格画到另一格的箭头；马步（1×2）走折线，其余走直线。
+struct BoardArrowView: View {
+    let arrow: BoardArrow
+    let squareSize: CGFloat
+    let palette: BoardPalette
+
+    var body: some View {
+        let color = palette.arrow(arrow.style)
+        let from = center(arrow.from)
+        let to = center(arrow.to)
+        let width = squareSize * 0.15
+        let headLength = squareSize * 0.38
+        let headWidth = squareSize * 0.40
+        let points = route(from: from, to: to)
+        let last = points[points.count - 1]
+        let before = points[points.count - 2]
+        let angle = atan2(last.y - before.y, last.x - before.x)
+        // 箭身在箭头根部收住，避免圆头从尖端戳出来。
+        let base = CGPoint(x: last.x - cos(angle) * headLength * 0.85, y: last.y - sin(angle) * headLength * 0.85)
+
+        ZStack {
+            Path { path in
+                path.move(to: points[0])
+                for point in points.dropFirst().dropLast() { path.addLine(to: point) }
+                path.addLine(to: base)
+            }
+            .stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
+
+            Path { path in
+                let left = CGPoint(
+                    x: last.x - cos(angle) * headLength + cos(angle + .pi / 2) * headWidth / 2,
+                    y: last.y - sin(angle) * headLength + sin(angle + .pi / 2) * headWidth / 2
+                )
+                let right = CGPoint(
+                    x: last.x - cos(angle) * headLength - cos(angle + .pi / 2) * headWidth / 2,
+                    y: last.y - sin(angle) * headLength - sin(angle + .pi / 2) * headWidth / 2
+                )
+                path.move(to: last)
+                path.addLine(to: left)
+                path.addLine(to: right)
+                path.closeSubpath()
+            }
+            .fill(color)
+        }
+        .opacity(arrow.style == .opponent ? 0.5 : 0.88)
+    }
+
+    private func center(_ square: Square) -> CGPoint {
+        CGPoint(x: (CGFloat(square.col) + 0.5) * squareSize, y: (CGFloat(square.row) + 0.5) * squareSize)
+    }
+
+    private func route(from: CGPoint, to: CGPoint) -> [CGPoint] {
+        let dc = abs(arrow.to.col - arrow.from.col)
+        let dr = abs(arrow.to.row - arrow.from.row)
+        guard (dc == 1 && dr == 2) || (dc == 2 && dr == 1) else { return [from, to] }
+        // 先沿较长的一边走，再拐弯，和棋子的飞行路线一致。
+        let corner = dr > dc ? CGPoint(x: from.x, y: to.y) : CGPoint(x: to.x, y: from.y)
+        return [from, corner, to]
     }
 }
 
@@ -199,9 +422,11 @@ struct PieceSprite: View {
     var body: some View {
         let set = pieceSets.selected
         let kind = piece.kind.assetKind
-        let centered = set.id == "nook_flat"
+        let centered = set.isCentered
         let ratio = set.isSculpt ? kind.heightRatio : 0.92
-        let height = squareSize * 0.90 * ratio
+        // Square 100x100 art already includes its own margin; scale the frame so
+        // the tallest piece fills roughly the same height as Nook Flat.
+        let height = set.isSquareArt ? squareSize * 0.98 : squareSize * 0.90 * ratio
         let flip = kind == .knight && facing.file == .g
         Group {
             if let image = pieceSets.image(side: piece.color.side, kind: kind) {

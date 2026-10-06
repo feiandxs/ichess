@@ -10,6 +10,7 @@ struct ichessApp: App {
     @StateObject private var pieceSets = PieceSetStore()
     @StateObject private var game = ChessGameStore()
     @StateObject private var theme = ThemeStore()
+    @StateObject private var language = LanguageStore()
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
@@ -21,6 +22,8 @@ struct ichessApp: App {
                 .environmentObject(pieceSets)
                 .environmentObject(game)
                 .environmentObject(theme)
+                .environmentObject(language)
+                .environment(\.locale, language.locale)
                 .onAppear { game.resumeIfNeeded() }
         }
         #if os(macOS)

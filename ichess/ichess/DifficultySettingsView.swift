@@ -33,12 +33,12 @@ struct DifficultySettingsView: View {
                         .buttonStyle(.plain)
                     }
                 } header: {
-                    Text(game.hasChosenDifficulty ? String(localized: "Current game: \(game.activeDifficulty.title)") : String(localized: "Not sure? Start with Beginner."))
+                    Text(game.hasChosenDifficulty ? String(localized: "Current game: \(game.activeDifficulty.title)", bundle: .localized) : String(localized: "Not sure? Start with Beginner.", bundle: .localized))
                 } footer: {
-                    Text("Choose before your first move to apply immediately. Changes during a game apply next game. Difficulty does not change your practice points.")
+                    Text("Choose before your first move to apply immediately. Changes during a game apply next game. Difficulty does not change the points you earn in Battle.")
                 }
             }
-            .navigationTitle(game.hasChosenDifficulty ? String(localized: "Choose Difficulty") : String(localized: "Choose Your Level"))
+            .navigationTitle(game.hasChosenDifficulty ? String(localized: "Choose Difficulty", bundle: .localized) : String(localized: "Choose Your Level", bundle: .localized))
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif

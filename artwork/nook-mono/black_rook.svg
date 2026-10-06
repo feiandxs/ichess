@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Monoline - black rook</title>
+  <g fill="#3B4E58" stroke="#0F1920" stroke-width="4" stroke-linejoin="round"><path d="M24 19H35V30H44V19H56V30H65V19H76V41H70V72H30V41H24Z"/><rect x="22" y="72" width="56" height="11" rx="3"/></g>
+</svg>

@@ -19,7 +19,7 @@ struct PieceSetSettingsView: View {
                     HStack(spacing: 12) {
                         preview(set)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(set.name)
+                            Text(set.localizedName)
                                 .foregroundStyle(.primary)
                                 .font(.body.weight(.semibold))
                             Text(set.localizedSource)
@@ -58,7 +58,7 @@ struct PieceSetSettingsView: View {
                     image
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 22, height: 28)
+                        .frame(width: set.isSquareArt ? 28 : 22, height: 28)
                 }
             }
         }

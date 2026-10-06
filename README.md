@@ -47,6 +47,6 @@ Stockfish 对手使用内置限强参数，最大深度 15、搜索时间 1000 m
 
 ## 棋子素材
 
-棋子库提供原创 Nook Flat（默认）、Clay 3D，以及 Spatial、RhosGFX、Celtic、Chessnut、Fantasy 共 7 套。Nook Flat 的可编辑矢量源文件保存在 `artwork/nook-flat/`。第三方素材的作者、许可与 SVG 转 PNG 的修改说明位于随应用打包的 `PieceArtworkLicenses.txt`。
+棋子库提供原创 Nook Flat（默认）、圆润几何 Soft Geometry、锐角切面 Crisp Facets、厚重积木 Bold Blocks、单线轮廓 Monoline、圆徽章 Badge Discs、Clay 3D，以及 Spatial、RhosGFX、Celtic、Chessnut、Fantasy 共 12 套。原创矢量源文件保存在 `artwork/nook-flat/` 与 `artwork/nook-{soft,crisp,block,mono,badge}/`，后五套的生成脚本在 `artwork/piece-lab/`；`node scripts/pack_piece_sets.mjs --originals-only` 可重新栅格化原创款式并合并进 catalog.json。第三方素材的作者、许可与 SVG 转 PNG 的修改说明位于随应用打包的 `PieceArtworkLicenses.txt`。
 
-已移除未取得独立再分发授权的 Chess.com 素材，以及带非商业限制、授权不明或尚未完成许可处理的 Lichess 素材。Geometric 实际由 Cburnett 改色生成，不作为原创保留。导入脚本仅允许已核实的保留款式。
+已移除未取得独立再分发授权的 Chess.com 素材，以及带非商业限制、授权不明或尚未完成许可处理的 Lichess 素材。Geometric 实际由 Cburnett 改色生成，不作为原创保留。导入脚本仅允许已核实的保留款式。本地开发时可能另有未入库的 Chess.com 素材（被 .gitignore 忽略、只放在本机 `catalog.local.json`），它们不属于仓库，也不随发布版本提供。

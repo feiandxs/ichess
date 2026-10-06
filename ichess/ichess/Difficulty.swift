@@ -7,23 +7,23 @@ nonisolated enum Difficulty: String, CaseIterable, Codable, Identifiable, Sendab
 
     var title: String {
         switch self {
-        case .novice: String(localized: "Newcomer")
-        case .beginner: String(localized: "Beginner")
-        case .practiced: String(localized: "Intermediate")
-        case .advanced: String(localized: "Advanced")
-        case .expert: String(localized: "Expert")
-        case .master: String(localized: "Master Challenge")
+        case .novice: String(localized: "Newcomer", bundle: .localized)
+        case .beginner: String(localized: "Beginner", bundle: .localized)
+        case .practiced: String(localized: "Intermediate", bundle: .localized)
+        case .advanced: String(localized: "Advanced", bundle: .localized)
+        case .expert: String(localized: "Expert", bundle: .localized)
+        case .master: String(localized: "Master Challenge", bundle: .localized)
         }
     }
 
     var detail: String {
         switch self {
-        case .novice: String(localized: "Learn the rules at a relaxed pace")
-        case .beginner: String(localized: "Practice captures and protecting pieces")
-        case .practiced: String(localized: "Spot tactics and anticipate replies")
-        case .advanced: String(localized: "A stronger challenge for regular players")
-        case .expert: String(localized: "For experienced players")
-        case .master: String(localized: "Take on a powerful opponent")
+        case .novice: String(localized: "Learn the rules at a relaxed pace", bundle: .localized)
+        case .beginner: String(localized: "Practice captures and protecting pieces", bundle: .localized)
+        case .practiced: String(localized: "Spot tactics and anticipate replies", bundle: .localized)
+        case .advanced: String(localized: "A stronger challenge for regular players", bundle: .localized)
+        case .expert: String(localized: "For experienced players", bundle: .localized)
+        case .master: String(localized: "Take on a powerful opponent", bundle: .localized)
         }
     }
 

@@ -1,0 +1,182 @@
+<meta charset="utf-8">
+<title>棋子实验室 Piece Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one controls column above a board stage; line-up and size check sit below as quiet reference panels. */
+:root {
+  --bg: #F0F4F5; --panel: #FFFFFF; --fg: #1A2A31; --muted: #566973; --line: #D3DDE1; --accent: #2C6E8E; --accent-fg: #FFFFFF; --chip: #E4ECEF;
+  --f-display: "Bricolage Grotesque", "Noto Sans SC", system-ui, sans-serif;
+  --f-body: "Noto Sans SC", system-ui, -apple-system, "PingFang SC", sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --sq-l: #E8EEF2; --sq-d: #B0C4CE;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E181D; --panel: #15222A; --fg: #E4ECEF; --muted: #8DA2AC; --line: #26373F; --accent: #7CB8D6; --accent-fg: #0E181D; --chip: #1D2E37; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0E181D; --panel: #15222A; --fg: #E4ECEF; --muted: #8DA2AC; --line: #26373F; --accent: #7CB8D6; --accent-fg: #0E181D; --chip: #1D2E37; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 20px 48px; }
+.wrap { max-width: 1120px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font: 700 1.9rem/1.1 var(--f-display); margin: 0; letter-spacing: -.01em; }
+h1 small, .en { font: 500 .72em/1.2 var(--f-body); color: var(--muted); letter-spacing: .02em; }
+h2 { font: 600 1.05rem/1.2 var(--f-display); margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+h2 .en { font-size: .75rem; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+button, select { font: inherit; color: var(--fg); }
+.chip { background: var(--chip); border: 1.5px solid transparent; border-radius: 10px; padding: 7px 12px; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; text-align: left; }
+.chip .en { font-size: .68rem; }
+.chip[aria-pressed="true"], .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
+.chip[aria-pressed="true"] .en, .chip[aria-selected="true"] .en { color: inherit; opacity: .8; }
+.chip:hover { border-color: var(--accent); }
+:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+.sw { display: inline-flex; width: 28px; height: 14px; border-radius: 3px; overflow: hidden; margin-bottom: 4px; border: 1px solid var(--line); }
+.sw i { flex: 1; }
+select { background: var(--chip); border: 1.5px solid transparent; border-radius: 10px; padding: 8px 10px; }
+.idea { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.idea b { font: 700 1.15rem var(--f-display); }
+.idea span { color: var(--muted); }
+.idea code { font: .75rem var(--f-mono); color: var(--muted); margin-left: auto; }
+.stage { display: grid; gap: 20px; grid-template-columns: 1fr; justify-items: center; }
+.stage.two { grid-template-columns: 1fr 1fr; }
+.bw { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bw .cap { font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
+.board { display: grid; grid-template-columns: repeat(8, 1fr); width: 100%; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.sq { position: relative; background: var(--sq-l); display: grid; place-items: center; min-width: 0; }
+.sq.d { background: var(--sq-d); }
+.sq svg { width: 94%; height: 94%; display: block; }
+.sq em { position: absolute; font: 600 clamp(8px, 1.6vw, 11px)/1 var(--f-mono); font-style: normal; opacity: .7; pointer-events: none; }
+.sq .r { top: 3px; left: 3px; } .sq .f { bottom: 3px; right: 3px; }
+.sq.l em { color: var(--sq-d); filter: brightness(.55); } .sq.d em { color: var(--sq-l); filter: brightness(.95); }
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.lineup { display: grid; grid-template-columns: repeat(6, 1fr); border-radius: 8px; overflow: hidden; }
+.lineup > div { aspect-ratio: 1; display: grid; place-items: center; }
+.lineup svg { width: 92%; height: 92%; }
+.lineup .l, .strip .l { background: var(--sq-l); } .lineup .d, .strip .d { background: var(--sq-d); }
+.lineup .dk, .strip .dk { background: var(--sq-d); }
+.strips { display: flex; flex-direction: column; gap: 10px; }
+.strip { display: grid; grid-template-columns: repeat(6, auto); border-radius: 8px; overflow: hidden; width: fit-content; }
+.sw-scroll { overflow-x: auto; max-width: 100%; }
+.strip .sz { font: .7rem var(--f-mono); color: var(--muted); margin-bottom: 4px; }
+.strip > div { display: grid; place-items: center; }
+.hint { color: var(--muted); font-size: .8rem; }
+kbd { font: .72rem var(--f-mono); background: var(--chip); border-radius: 4px; padding: 1px 5px; }
+@media (max-width: 760px) { .stage.two { grid-template-columns: 1fr; } h1 { font-size: 1.55rem; } .idea code { margin-left: 0; } }
+@media (prefers-reduced-motion: no-preference) { .chip { transition: background .15s, border-color .15s; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>__SYMBOLS__</defs></svg>
+
+<div class="wrap">
+  <header>
+    <h1>棋子实验室 <small>Piece Lab</small></h1>
+    <p>六套原创扁平棋子，在同一块棋盘上比较。左右方向键切换棋子，下方可以检查小尺寸和深浅格上的可读性。</p>
+  </header>
+
+  <section class="group" aria-label="棋子风格">
+    <span class="label">棋子风格 · Piece set</span>
+    <div class="row" id="tabs" role="tablist"></div>
+  </section>
+
+  <section class="row" style="gap:20px 28px; align-items:flex-start">
+    <div class="group"><span class="label">棋盘配色 · Board</span><div class="row" id="boards"></div></div>
+    <div class="group"><span class="label">局面 · Position</span><div class="row" id="pos"></div></div>
+    <div class="group"><span class="label">对比 · Compare</span>
+      <div class="row"><button class="chip" id="cmpBtn" aria-pressed="false"><span>并排对比<span class="en"> Side by side</span></span></button>
+      <select id="cmpSel" aria-label="对比的第二套棋子" hidden></select></div></div>
+  </section>
+
+  <div class="idea" id="idea"></div>
+
+  <main class="stage" id="stage"></main>
+
+  <section class="panels">
+    <div class="panel">
+      <h2>十二枚棋子 <span class="en">Line-up on light squares</span></h2>
+      <div class="lineup" id="lu-l"></div>
+      <h2>深色格 <span class="en">on dark squares</span></h2>
+      <div class="lineup" id="lu-d"></div>
+    </div>
+    <div class="panel">
+      <h2>尺寸检查 <span class="en">Size check</span></h2>
+      <p class="hint" style="margin:0">手机上棋格大约 40px。每行为白、黑棋子交替落在深浅格上。</p>
+      <div class="strips" id="strips"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const META = __META__;
+const KINDS = ['king','queen','rook','bishop','knight','pawn'];
+const KN = {king:'K',queen:'Q',rook:'R',bishop:'B',knight:'N',pawn:'P'};
+const L2K = {k:'king',q:'queen',r:'rook',b:'bishop',n:'knight',p:'pawn'};
+const BOARDS = [
+  {id:'nook', zh:'Nook 浅色', en:'Nook light', l:'#E8EEF2', d:'#B0C4CE'},
+  {id:'nookdark', zh:'Nook 深色', en:'Nook dark', l:'#23343B', d:'#16232B'},
+  {id:'green', zh:'经典绿', en:'Classic green', l:'#EEEED2', d:'#769656'},
+  {id:'wood', zh:'木色', en:'Wood tone', l:'#F0D9B5', d:'#B58863'},
+];
+const POS = [
+  {id:'start', zh:'开局', en:'Start', fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'},
+  {id:'mid', zh:'中局', en:'Middlegame', fen:'r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1'},
+];
+const $ = (id) => document.getElementById(id);
+let st = {set: META[0].id, set2: 'crisp', board: 'nook', pos: 'start', cmp: false};
+try { Object.assign(st, JSON.parse(localStorage.getItem('piecelab') || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem('piecelab', JSON.stringify(st)); } catch (e) {} };
+const byId = (id) => META.find((m) => m.id === id) || META[0];
+const pc = (set, color, kind) => `<svg viewBox="0 0 100 100" aria-hidden="true"><use href="#p-${set}-${color}-${kind}"/></svg>`;
+
+function parse(fen) {
+  const out = [];
+  fen.split('/').forEach((row, r) => { let f = 0; for (const ch of row) { if (/\d/.test(ch)) f += +ch; else { out[r * 8 + f] = [ch === ch.toUpperCase() ? 'white' : 'black', L2K[ch.toLowerCase()]]; f++; } } });
+  return out;
+}
+function board(setId) {
+  const cells = parse(POS.find((p) => p.id === st.pos).fen);
+  let h = '';
+  for (let i = 0; i < 64; i++) {
+    const r = i >> 3, f = i & 7, light = (r + f) % 2 === 0;
+    const c = cells[i];
+    h += `<div class="sq ${light ? 'l' : 'd'}">${c ? pc(setId, c[0], c[1]) : ''}${f === 0 ? `<em class="r">${8 - r}</em>` : ''}${r === 7 ? `<em class="f">${'abcdefgh'[f]}</em>` : ''}</div>`;
+  }
+  return `<div class="board" role="img" aria-label="${byId(setId).zh} 棋盘">${h}</div>`;
+}
+function cap(m) { return `<div class="cap">${m.zh} <span class="en">${m.en}</span></div>`; }
+
+function render() {
+  const m = byId(st.set), b = BOARDS.find((x) => x.id === st.board) || BOARDS[0];
+  document.documentElement.style.setProperty('--sq-l', b.l);
+  document.documentElement.style.setProperty('--sq-d', b.d);
+  $('tabs').innerHTML = META.map((s) => `<button class="chip" role="tab" aria-selected="${s.id === st.set}" data-set="${s.id}"><span>${s.zh}</span><span class="en">${s.en}</span></button>`).join('');
+  $('boards').innerHTML = BOARDS.map((x) => `<button class="chip" aria-pressed="${x.id === st.board}" data-board="${x.id}"><span class="sw"><i style="background:${x.l}"></i><i style="background:${x.d}"></i></span><span>${x.zh}</span><span class="en">${x.en}</span></button>`).join('');
+  $('pos').innerHTML = POS.map((x) => `<button class="chip" aria-pressed="${x.id === st.pos}" data-pos="${x.id}"><span>${x.zh}</span><span class="en">${x.en}</span></button>`).join('');
+  $('cmpBtn').setAttribute('aria-pressed', st.cmp);
+  const sel = $('cmpSel'); sel.hidden = !st.cmp;
+  sel.innerHTML = META.map((s) => `<option value="${s.id}"${s.id === st.set2 ? ' selected' : ''}>${s.zh} ${s.en}</option>`).join('');
+  $('idea').innerHTML = `<b>${m.zh}</b><span class="en">${m.en}</span><span>${m.idea}</span><code>sets/${m.id}/</code>`;
+  const stage = $('stage');
+  stage.className = 'stage' + (st.cmp ? ' two' : '');
+  stage.innerHTML = `<div class="bw">${st.cmp ? cap(m) : ''}${board(st.set)}</div>` + (st.cmp ? `<div class="bw">${cap(byId(st.set2))}${board(st.set2)}</div>` : '');
+  const lu = (cls) => ['white', 'black'].map((c) => KINDS.map((k) => `<div class="${cls}">${pc(m.id, c, k)}</div>`).join('')).join('');
+  $('lu-l').innerHTML = lu('l'); $('lu-d').innerHTML = lu('d');
+  $('strips').innerHTML = [32, 44, 64].map((px) => `<div><div class="sz">${px}px</div><div class="sw-scroll"><div class="strip">` +
+    ['white', 'black'].flatMap((c) => KINDS.map((k) => [c, k])).map(([c, k], i) => `<div class="${(i + (i > 5 ? 1 : 0)) % 2 ? 'd' : 'l'}" style="width:${px + 8}px;height:${px + 8}px"><svg width="${px}" height="${px}" viewBox="0 0 100 100"><use href="#p-${m.id}-${c}-${k}"/></svg></div>`).join('') + '</div></div></div>').join('');
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.set) st.set = t.dataset.set; else if (t.dataset.board) st.board = t.dataset.board; else if (t.dataset.pos) st.pos = t.dataset.pos; else if (t.id === 'cmpBtn') st.cmp = !st.cmp; else return;
+  save(); render();
+});
+$('cmpSel').addEventListener('change', (e) => { st.set2 = e.target.value; save(); render(); });
+document.addEventListener('keydown', (e) => {
+  if (e.target.closest && e.target.closest('select, input')) return;
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const i = META.findIndex((s) => s.id === st.set), n = META.length;
+  st.set = META[(i + (e.key === 'ArrowRight' ? 1 : n - 1)) % n].id; save(); render(); e.preventDefault();
+});
+render();
+</script>

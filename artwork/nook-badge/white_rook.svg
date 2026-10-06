@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
+  <title>Badge Discs - white rook</title>
+  <circle cx="50" cy="50" r="38" fill="#F7F8F6" stroke="#2F3E46" stroke-width="3"/><g fill="#2F3E46"><rect x="29" y="24" width="11" height="16" rx="1.5"/><rect x="44.5" y="24" width="11" height="16" rx="1.5"/><rect x="60" y="24" width="11" height="16" rx="1.5"/><rect x="29" y="38" width="42" height="9" rx="1.5"/><rect x="33" y="46" width="34" height="22"/><rect x="28" y="66" width="44" height="7" rx="2"/></g>
+</svg>
